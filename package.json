@@ -9,7 +9,9 @@
   "scripts": {
     "dev": "echo 'dev ok'",
     "build": "echo 'build ok'",
-    "test": "echo 'tests ok'",
+    "test": "jest --passWithNoTests",
+    "test:rls": "jest --testPathPattern=rls --passWithNoTests",
+    "test:coverage": "jest --coverage",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
@@ -21,9 +23,11 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@types/jest": "^30.0.0",
     "eslint": "^10.0.3",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
+    "jest": "^30.3.0",
     "prettier": "^3.8.1"
   }
 }

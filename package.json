@@ -10,7 +10,7 @@
     "dev": "echo 'dev ok'",
     "build": "echo 'build ok'",
     "test": "jest --passWithNoTests",
-    "test:rls": "jest --testPathPattern=rls --passWithNoTests",
+    "test:rls": "jest --testPathPatterns=rls --passWithNoTests",
     "test:coverage": "jest --coverage",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -22,12 +22,17 @@
     "npm": ">=10.0.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.29.0",
+    "@babel/preset-env": "^7.29.0",
     "@eslint/js": "^10.0.1",
     "@types/jest": "^30.0.0",
+    "babel-jest": "^30.3.0",
+    "dotenv": "^17.3.1",
     "eslint": "^10.0.3",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
     "jest": "^30.3.0",
+    "pg": "^8.20.0",
     "prettier": "^3.8.1"
   }
 }

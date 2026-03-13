@@ -6,8 +6,21 @@ export default [
   js.configs.recommended,
   prettier,
   {
-    plugins: {
-      prettier: prettierPlugin,
+    plugins: { prettier: prettierPlugin },
+    languageOptions: {
+      globals: {
+        process: 'readonly',
+        console: 'readonly',
+        crypto: 'readonly',
+        Buffer: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        URL: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly',
+      },
     },
     rules: {
       'prettier/prettier': 'error',

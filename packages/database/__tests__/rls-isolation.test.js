@@ -33,19 +33,13 @@ describe('RLS — Isolamento Cross-Tenant', () => {
   describe('Caso 1 — Cross-Tenant Read (SELECT)', () => {
     it('Tenant A NAO deve ver pacientes do Tenant B', async () => {
       await setTenantContext(client, TENANT_A);
-      const result = await client.query(
-        `SELECT id FROM patients WHERE id = $1`,
-        [PATIENT_B1]
-      );
+      const result = await client.query(`SELECT id FROM patients WHERE id = $1`, [PATIENT_B1]);
       expect(result.rows).toHaveLength(0);
     });
 
     it('Tenant B NAO deve ver pacientes do Tenant A', async () => {
       await setTenantContext(client, TENANT_B);
-      const result = await client.query(
-        `SELECT id FROM patients WHERE id = $1`,
-        [PATIENT_A1]
-      );
+      const result = await client.query(`SELECT id FROM patients WHERE id = $1`, [PATIENT_A1]);
       expect(result.rows).toHaveLength(0);
     });
   });
@@ -68,10 +62,9 @@ describe('RLS — Isolamento Cross-Tenant', () => {
     it('Tenant A NAO deve inserir paciente com company_id do Tenant B', async () => {
       await setTenantContext(client, TENANT_A);
       await expect(
-        client.query(
-          `INSERT INTO patients (company_id, full_name) VALUES ($1, 'Invasor')`,
-          [TENANT_B]
-        )
+        client.query(`INSERT INTO patients (company_id, full_name) VALUES ($1, 'Invasor')`, [
+          TENANT_B,
+        ])
       ).rejects.toThrow();
     });
   });

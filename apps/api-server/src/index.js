@@ -1,4 +1,4 @@
-import './load-env.js';
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 
@@ -8,6 +8,7 @@ import patientsRoutes from './routes/patients.routes.js';
 import appointmentsRoutes from './routes/appointments.routes.js';
 import consentsRoutes from './routes/consents.routes.js';
 import auditLogsRoutes from './routes/audit-logs.routes.js';
+import rootRoutes from './routes/root.routes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -23,6 +24,7 @@ app.use('/api/v1/patients', patientsRoutes);
 app.use('/api/v1/appointments', appointmentsRoutes);
 app.use('/api/v1/consents', consentsRoutes);
 app.use('/api/v1/audit-logs', auditLogsRoutes);
+app.use('/api/v1/root', rootRoutes);
 
 // ── 404 fallback ──────────────────────────────────────────────────────────
 app.use((_req, res) => {

@@ -1,0 +1,15 @@
+{
+  "name": "@nexus/ui-kit",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./tokens": "./tokens/index.js",
+    "./themes/*": "./themes/*"
+  },
+  "scripts": {
+    "test": "echo 'no tests yet'"
+  }
+}

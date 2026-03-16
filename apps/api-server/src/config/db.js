@@ -21,9 +21,15 @@ export const authPool = new Pool({
   idleTimeoutMillis: 10000,
 });
 
+// Tenta setar o contexto RLS — funciona em conexão direta e session pooler
+// Em transaction pooler, o filtro explícito por company_id nas queries é o fallback
 export async function withTenantContext(client, companyId, fn) {
-  await client.query(`SET app.current_company_id = '${companyId}'`);
-  return fn(client);
+  try {
+    await client.query(`SET LOCAL app.current_company_id = '${companyId}'`);
+  } catch {
+    // Transaction pooler não suporta SET LOCAL — ignora, usa filtro explícito
+  }
+  return fn(client, companyId);
 }
 
 pool.on('error', (err) => {

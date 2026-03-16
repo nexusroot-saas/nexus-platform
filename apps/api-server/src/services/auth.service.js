@@ -3,9 +3,6 @@ import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import { authPool, pool } from '../config/db.js';
 
-/**
- * Gera o access token JWT com todos os claims necessários para RLS + RBAC
- */
 function generateAccessToken(user) {
   return jwt.sign(
     {
@@ -20,15 +17,7 @@ function generateAccessToken(user) {
   );
 }
 
-/**
- * login — autentica usuário e retorna access_token + refresh_token
- *
- * ATENÇÃO: usa authPool (owner) para buscar o usuário pelo email,
- * pois ainda não temos company_id para setar o contexto RLS.
- * Após o login, TODAS as operações usam pool (nexus_app) com RLS.
- */
 export async function login(email, password) {
-  // Busca usuário pelo email usando pool owner (sem RLS)
   const { rows } = await authPool.query(
     `SELECT u.id, u.name, u.email, u.password_hash, u.role, u.status,
             u.company_id, c.tenant_type, c.active_modules
@@ -45,7 +34,8 @@ export async function login(email, password) {
 
   const user = rows[0];
 
-  if (user.status === 'BLOQUEADO') {
+  // Aceita tanto inglês (BLOCKED) quanto português (BLOQUEADO) para compatibilidade
+  if (user.status === 'BLOCKED' || user.status === 'BLOQUEADO') {
     return { error: 'Usuário bloqueado.', status: 403 };
   }
 
@@ -62,7 +52,6 @@ export async function login(email, password) {
     modules: user.active_modules || [],
   });
 
-  // Grava refresh token no banco (rotação obrigatória — uso único)
   const refreshToken = uuidv4();
   const expiresAt = new Date(
     Date.now() + parseDuration(process.env.REFRESH_TOKEN_EXPIRES_IN || '7d')
@@ -88,9 +77,6 @@ export async function login(email, password) {
   };
 }
 
-/**
- * refresh — valida refresh token e emite novo access token
- */
 export async function refresh(refreshToken) {
   const { rows } = await pool.query(
     `SELECT rt.*, u.role, u.company_id, c.tenant_type, c.active_modules
@@ -110,7 +96,6 @@ export async function refresh(refreshToken) {
 
   const rt = rows[0];
 
-  // Revoga o token atual (rotação — uso único)
   await pool.query(`UPDATE refresh_tokens SET revoked_at = NOW() WHERE id = $1`, [rt.id]);
 
   const newAccessToken = generateAccessToken({
@@ -121,7 +106,6 @@ export async function refresh(refreshToken) {
     modules: rt.active_modules || [],
   });
 
-  // Emite novo refresh token
   const newRefreshToken = uuidv4();
   const expiresAt = new Date(
     Date.now() + parseDuration(process.env.REFRESH_TOKEN_EXPIRES_IN || '7d')
@@ -136,9 +120,6 @@ export async function refresh(refreshToken) {
   return { access_token: newAccessToken, refresh_token: newRefreshToken };
 }
 
-/**
- * logout — revoga o refresh token
- */
 export async function logout(refreshToken) {
   const result = await pool.query(
     `UPDATE refresh_tokens SET revoked_at = NOW()
@@ -148,7 +129,6 @@ export async function logout(refreshToken) {
   return { revoked: result.rowCount > 0 };
 }
 
-// ── Helper ────────────────────────────────────────────────────────────────
 function parseDuration(str) {
   const match = str.match(/^(\d+)([smhd])$/);
   if (!match) return 7 * 24 * 60 * 60 * 1000;

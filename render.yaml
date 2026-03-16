@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: nexus-api
+    runtime: node
+    region: oregon
+    plan: free
+    rootDir: apps/api-server
+    buildCommand: npm install
+    startCommand: node src/index.js
+    healthCheckPath: /health/ready
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_URL_OWNER
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 15m
+      - key: REFRESH_TOKEN_EXPIRES_IN
+        value: 7d
+      - key: FRONTEND_URL
+        sync: false

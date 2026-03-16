@@ -195,3 +195,9 @@ afterAll(async () => {
   await pool.end().catch(() => {});
   await authPool.end().catch(() => {});
 });
+
+afterAll(async () => {
+  const { pool, authPool } = await import('../config/db.js');
+  await pool.end().catch(() => {});
+  await authPool.end().catch(() => {});
+});

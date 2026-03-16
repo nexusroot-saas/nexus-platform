@@ -4,9 +4,8 @@ services:
     runtime: node
     region: oregon
     plan: free
-    rootDir: apps/api-server
     buildCommand: npm install
-    startCommand: node src/index.js
+    startCommand: node apps/api-server/src/index.js
     healthCheckPath: /health/ready
     envVars:
       - key: NODE_ENV

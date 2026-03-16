@@ -16,7 +16,27 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // ── Middlewares globais ────────────────────────────────────────────────────
-app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173' }));
+console.log('[CORS] FRONTEND_URL:', process.env.FRONTEND_URL);
+console.log('[CORS] FRONTEND_URL_ROOT:', process.env.FRONTEND_URL_ROOT);
+app.use(cors({
+  origin: (origin, cb) => {
+    const allowed = [
+      process.env.FRONTEND_URL,
+      process.env.FRONTEND_URL_ROOT,
+      'http://localhost:5173',
+      'http://localhost:5174',
+    ].filter(Boolean);
+    if (!origin || allowed.some(u => origin.startsWith(u.replace(/\/$/, '')))) {
+      cb(null, true);
+    } else {
+      cb(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization'],
+  optionsSuccessStatus: 204,
+}));
 app.use(express.json());
 
 // ── Rotas ──────────────────────────────────────────────────────────────────

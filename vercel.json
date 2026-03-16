@@ -1,5 +1,4 @@
 {
-  "rootDirectory": "apps/web-portal",
   "buildCommand": "npm install && npm run build",
   "outputDirectory": "dist",
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]

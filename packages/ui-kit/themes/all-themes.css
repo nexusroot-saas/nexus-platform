@@ -1,0 +1,79 @@
+/* ============================================================
+   @nexus/ui-kit — NexusOdonto Theme (Verde)
+   ============================================================ */
+.theme-odonto {
+  --color-brand-primary:  #16a34a;
+  --color-brand-hover:    #15803d;
+  --color-brand-soft:     #dcfce7;
+  --color-brand-text:     #ffffff;
+  --sidebar-bg:           #071812;
+  --sidebar-border:       #0d2818;
+  --sidebar-text:         #b0d8c0;
+  --sidebar-text-active:  #ffffff;
+  --sidebar-accent:       #22c55e;
+  --logo-color:           #4ade80;
+}
+
+/* ============================================================
+   @nexus/ui-kit — NexusLab Theme (Roxo)
+   ============================================================ */
+.theme-lab {
+  --color-brand-primary:  #7c3aed;
+  --color-brand-hover:    #6d28d9;
+  --color-brand-soft:     #ede9fe;
+  --color-brand-text:     #ffffff;
+  --sidebar-bg:           #0e0a1e;
+  --sidebar-border:       #1a1030;
+  --sidebar-text:         #c8b8f0;
+  --sidebar-text-active:  #ffffff;
+  --sidebar-accent:       #a78bfa;
+  --logo-color:           #a78bfa;
+}
+
+/* ============================================================
+   @nexus/ui-kit — NexusIMG Theme (Laranja)
+   ============================================================ */
+.theme-img {
+  --color-brand-primary:  #ea580c;
+  --color-brand-hover:    #c2410c;
+  --color-brand-soft:     #ffedd5;
+  --color-brand-text:     #ffffff;
+  --sidebar-bg:           #1a0e06;
+  --sidebar-border:       #2a1808;
+  --sidebar-text:         #f0c8a8;
+  --sidebar-text-active:  #ffffff;
+  --sidebar-accent:       #fb923c;
+  --logo-color:           #fb923c;
+}
+
+/* ============================================================
+   @nexus/ui-kit — NexusAdm Theme (Teal)
+   ============================================================ */
+.theme-adm {
+  --color-brand-primary:  #0d9488;
+  --color-brand-hover:    #0f766e;
+  --color-brand-soft:     #ccfbf1;
+  --color-brand-text:     #ffffff;
+  --sidebar-bg:           #061614;
+  --sidebar-border:       #0a2220;
+  --sidebar-text:         #a0d8d4;
+  --sidebar-text-active:  #ffffff;
+  --sidebar-accent:       #2dd4bf;
+  --logo-color:           #2dd4bf;
+}
+
+/* ============================================================
+   @nexus/ui-kit — NexusRoot Theme (Cinza escuro — painel admin)
+   ============================================================ */
+.theme-root {
+  --color-brand-primary:  #374151;
+  --color-brand-hover:    #1f2937;
+  --color-brand-soft:     #f3f4f6;
+  --color-brand-text:     #ffffff;
+  --sidebar-bg:           #111827;
+  --sidebar-border:       #1f2937;
+  --sidebar-text:         #9ca3af;
+  --sidebar-text-active:  #ffffff;
+  --sidebar-accent:       #6b7280;
+  --logo-color:           #d1d5db;
+}

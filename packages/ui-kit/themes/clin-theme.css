@@ -1,0 +1,18 @@
+/* ============================================================
+   @nexus/ui-kit — NexusClin Theme (Rosa)
+   Aplicado via: <body class="theme-clin">
+   ============================================================ */
+
+.theme-clin {
+  --color-brand-primary:  #e8457a;
+  --color-brand-hover:    #c43368;
+  --color-brand-soft:     #fde8ef;
+  --color-brand-text:     #ffffff;
+
+  --sidebar-bg:           #1f0d14;
+  --sidebar-border:       #2e1020;
+  --sidebar-text:         #f0c8d8;
+  --sidebar-text-active:  #ffffff;
+  --sidebar-accent:       #e8457a;
+  --logo-color:           #f08aaa;
+}

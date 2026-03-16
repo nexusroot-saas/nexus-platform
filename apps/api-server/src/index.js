@@ -10,6 +10,7 @@ import consentsRoutes from './routes/consents.routes.js';
 import auditLogsRoutes from './routes/audit-logs.routes.js';
 import rootRoutes from './routes/root.routes.js';
 import docsRoutes from './routes/docs.routes.js';
+import homeRoutes from './routes/home.routes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -29,6 +30,7 @@ app.use('/api/v1/root', rootRoutes);
 
 // Swagger UI — documentação da API
 app.use('/docs', docsRoutes);
+app.use('/', homeRoutes);
 
 // ── 404 fallback ──────────────────────────────────────────────────────────
 app.use((_req, res) => {

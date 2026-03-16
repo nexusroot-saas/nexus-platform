@@ -9,6 +9,7 @@ import appointmentsRoutes from './routes/appointments.routes.js';
 import consentsRoutes from './routes/consents.routes.js';
 import auditLogsRoutes from './routes/audit-logs.routes.js';
 import rootRoutes from './routes/root.routes.js';
+import rootUsersRoutes from './routes/root-users.routes.js';
 import docsRoutes from './routes/docs.routes.js';
 import homeRoutes from './routes/home.routes.js';
 
@@ -47,6 +48,7 @@ app.use('/api/v1/appointments', appointmentsRoutes);
 app.use('/api/v1/consents', consentsRoutes);
 app.use('/api/v1/audit-logs', auditLogsRoutes);
 app.use('/api/v1/root', rootRoutes);
+app.use('/api/v1/root/users', rootUsersRoutes);
 
 // Swagger UI — documentação da API
 app.use('/docs', docsRoutes);

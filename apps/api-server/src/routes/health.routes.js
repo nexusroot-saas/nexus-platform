@@ -3,11 +3,13 @@ import { pool } from '../config/db.js';
 
 const router = Router();
 
-router.get('/live', (req, res) => {
+/** GET /health/live — servidor respondendo */
+router.get('/live', (_req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-router.get('/ready', async (req, res) => {
+/** GET /health/ready — banco conectado */
+router.get('/ready', async (_req, res) => {
   try {
     await pool.query('SELECT 1');
     res.status(200).json({ status: 'ok', db: 'connected' });

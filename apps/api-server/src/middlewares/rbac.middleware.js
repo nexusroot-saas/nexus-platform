@@ -1,5 +1,10 @@
+/**
+ * Matriz RBAC — Seção 34.2 da documentação Nexus
+ *
+ * Legenda: R=read C=create U=update D=delete
+ */
 const PERMISSIONS = {
-  ROOT_ADMIN: {
+  ROOT: {
     patients: ['read', 'create', 'update'],
     appointments: ['read'],
     consents: ['read', 'create', 'update'],
@@ -17,60 +22,52 @@ const PERMISSIONS = {
     users: ['read', 'create', 'update', 'delete'],
     audit_logs: ['read'],
     branding: ['read', 'create', 'update'],
-    tenants: [],
   },
   MEDICO: {
     patients: ['read', 'update'],
     appointments: ['read', 'update'],
     consents: ['read'],
-    financial: [],
-    users: [],
-    audit_logs: [],
-    branding: [],
-    tenants: [],
   },
   RECEPCIONISTA: {
     patients: ['read', 'create', 'update'],
     appointments: ['read', 'create', 'update', 'delete'],
     consents: ['read', 'create'],
-    financial: [],
-    users: [],
-    audit_logs: [],
-    branding: [],
-    tenants: [],
+    financial: ['read'],
   },
   FINANCEIRO: {
     patients: ['read'],
     appointments: ['read'],
-    consents: [],
     financial: ['read', 'create', 'update'],
-    users: [],
-    audit_logs: [],
-    branding: [],
-    tenants: [],
   },
   DPO_EXTERNO: {
-    patients: [],
-    appointments: [],
     consents: ['read'],
-    financial: [],
-    users: [],
     audit_logs: ['read'],
-    branding: [],
-    tenants: [],
   },
 };
 
+/**
+ * Middleware authorize
+ *
+ * Uso: router.get('/', authenticate, authorize('patients', 'read'), handler)
+ *
+ * Respostas de erro:
+ *  403 — Role sem permissão para o recurso/ação
+ */
 export function authorize(resource, action) {
   return (req, res, next) => {
-    const role = req.user?.role;
-    if (!role) return res.status(401).json({ error: 'Nao autenticado.' });
-    const allowed = (PERMISSIONS[role]?.[resource] || []).includes(action);
-    if (!allowed) {
-      return res.status(403).json({
-        error: `Acesso negado. Role '${role}' nao tem permissao '${action}' em '${resource}'.`,
-      });
+    const { role } = req.user;
+    const rolePerms = PERMISSIONS[role];
+
+    if (!rolePerms) {
+      return res.status(403).json({ error: 'Acesso negado.' });
     }
-    next();
+
+    const resourcePerms = rolePerms[resource] || [];
+
+    if (!resourcePerms.includes(action)) {
+      return res.status(403).json({ error: 'Acesso negado.' });
+    }
+
+    return next();
   };
 }

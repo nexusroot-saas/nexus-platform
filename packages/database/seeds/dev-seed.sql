@@ -1,100 +1,75 @@
--- ═══════════════════════════════════════════════════════════════
--- Seed de Desenvolvimento — 2 Tenants para testes de isolamento
--- NUNCA executar em producao
--- ═══════════════════════════════════════════════════════════════
+-- ============================================================
+-- Nexus Platform — Dev Seed
+-- 2 tenants isolados, 1 admin + 2 pacientes cada
+-- Usado nos testes de RLS do CI
+-- ============================================================
 
--- ─── TENANT A — Clinica Saude Total (MED) ────────────────────
-INSERT INTO public.companies (id, cnpj, nome_fantasia, tenant_type, status)
+-- ── Tenant A: Clínica Saúde Total (NexusMed) ─────────────────────────────
+INSERT INTO public.companies (id, cnpj, nome_fantasia, tenant_type, active_modules, status)
 VALUES (
   '00000000-0000-0000-0000-000000000001',
   '11.111.111/0001-11',
-  'Clinica Saude Total',
+  'Clínica Saúde Total',
   'MED',
-  'ACTIVE'
+  ARRAY['NEXUSMED', 'NEXUSLEGAL'],
+  'ATIVA'
 );
 
-INSERT INTO public.users (id, company_id, email, password_hash, full_name, role, status)
+-- Admin do Tenant A (senha: senha123)
+INSERT INTO public.users (id, company_id, name, email, password_hash, role, status)
 VALUES (
   '00000000-0000-0000-0000-000000000010',
   '00000000-0000-0000-0000-000000000001',
+  'Admin Saúde Total',
   'admin@saudetotal.com',
-  '$2b$12$placeholderhashadmin1111111111111111111111111111111111',
-  'Admin Saude Total',
+  '$2b$10$XFVnlLkXtFOq2PkRJyAiyeQ8Cb9dbbgLH7.T7p0UQD7vc4nEHBpXe', -- senha123
   'TENANT_ADMIN',
-  'ACTIVE'
-),
-(
-  '00000000-0000-0000-0000-000000000011',
-  '00000000-0000-0000-0000-000000000001',
-  'medico@saudetotal.com',
-  '$2b$12$placeholderhashmedi1111111111111111111111111111111111',
-  'Dr. Carlos Silva',
-  'MEDICO',
-  'ACTIVE'
+  'ATIVO'
 );
 
-INSERT INTO public.patients (id, company_id, full_name, phone, email, birth_date)
-VALUES (
-  '00000000-0000-0000-0000-000000000020',
-  '00000000-0000-0000-0000-000000000001',
-  'Paciente A1 — Saude Total',
-  '(11) 99999-0001',
-  'paciente.a1@email.com',
-  '1985-03-15'
-),
-(
-  '00000000-0000-0000-0000-000000000021',
-  '00000000-0000-0000-0000-000000000001',
-  'Paciente A2 — Saude Total',
-  '(11) 99999-0002',
-  'paciente.a2@email.com',
-  '1990-07-22'
-);
+-- Pacientes do Tenant A
+INSERT INTO public.patients (id, company_id, name, email, cpf, created_by)
+VALUES
+  ('00000000-0000-0000-0000-000000000101',
+   '00000000-0000-0000-0000-000000000001',
+   'João Silva', 'joao@email.com', '111.111.111-11',
+   '00000000-0000-0000-0000-000000000010'),
+  ('00000000-0000-0000-0000-000000000102',
+   '00000000-0000-0000-0000-000000000001',
+   'Maria Souza', 'maria@email.com', '222.222.222-22',
+   '00000000-0000-0000-0000-000000000010');
 
--- ─── TENANT B — OdontoVida (ODONTO) ──────────────────────────
-INSERT INTO public.companies (id, cnpj, nome_fantasia, tenant_type, status)
+-- ── Tenant B: OdontoVita (NexusOdonto) ───────────────────────────────────
+INSERT INTO public.companies (id, cnpj, nome_fantasia, tenant_type, active_modules, status)
 VALUES (
   '00000000-0000-0000-0000-000000000002',
   '22.222.222/0002-22',
-  'OdontoVida',
+  'OdontoVita',
   'ODONTO',
-  'ACTIVE'
+  ARRAY['NEXUSODONTO'],
+  'ATIVA'
 );
 
-INSERT INTO public.users (id, company_id, email, password_hash, full_name, role, status)
+-- Admin do Tenant B (senha: senha456)
+INSERT INTO public.users (id, company_id, name, email, password_hash, role, status)
 VALUES (
-  '00000000-0000-0000-0000-000000000030',
+  '00000000-0000-0000-0000-000000000020',
   '00000000-0000-0000-0000-000000000002',
-  'admin@odontovida.com',
-  '$2b$12$placeholderhashadmin2222222222222222222222222222222222',
-  'Admin OdontoVida',
+  'Admin OdontoVita',
+  'admin@odontovita.com',
+  '$2b$10$XFVnlLkXtFOq2PkRJyAiyeQ8Cb9dbbgLH7.T7p0UQD7vc4nEHBpXe', -- senha123
   'TENANT_ADMIN',
-  'ACTIVE'
-),
-(
-  '00000000-0000-0000-0000-000000000031',
-  '00000000-0000-0000-0000-000000000002',
-  'dentista@odontovida.com',
-  '$2b$12$placeholderhashmed22222222222222222222222222222222222',
-  'Dra. Ana Costa',
-  'MEDICO',
-  'ACTIVE'
+  'ATIVO'
 );
 
-INSERT INTO public.patients (id, company_id, full_name, phone, email, birth_date)
-VALUES (
-  '00000000-0000-0000-0000-000000000040',
-  '00000000-0000-0000-0000-000000000002',
-  'Paciente B1 — OdontoVida',
-  '(21) 99999-0001',
-  'paciente.b1@email.com',
-  '1978-11-30'
-),
-(
-  '00000000-0000-0000-0000-000000000041',
-  '00000000-0000-0000-0000-000000000002',
-  'Paciente B2 — OdontoVida',
-  '(21) 99999-0002',
-  'paciente.b2@email.com',
-  '1995-04-18'
-);
+-- Pacientes do Tenant B
+INSERT INTO public.patients (id, company_id, name, email, cpf, created_by)
+VALUES
+  ('00000000-0000-0000-0000-000000000201',
+   '00000000-0000-0000-0000-000000000002',
+   'Carlos Lima', 'carlos@email.com', '333.333.333-33',
+   '00000000-0000-0000-0000-000000000020'),
+  ('00000000-0000-0000-0000-000000000202',
+   '00000000-0000-0000-0000-000000000002',
+   'Ana Costa', 'ana@email.com', '444.444.444-44',
+   '00000000-0000-0000-0000-000000000020');

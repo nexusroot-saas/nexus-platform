@@ -1,0 +1,983 @@
+openapi: 3.0.0
+
+info:
+  title: Nexus Platform API
+  description: |
+    API REST da plataforma Nexus — Gestão em Saúde & Compliance LGPD.
+
+    ## Autenticação
+    A API usa **JWT Bearer Token**. Faça login em `POST /auth/login` para obter o token
+    e inclua-o no header `Authorization: Bearer <token>` em todas as requisições protegidas.
+
+    ## Multi-Tenant
+    Todos os dados são isolados por `company_id`. O token JWT carrega o `company_id` do
+    usuário autenticado e o banco filtra automaticamente — nenhum dado de outro tenant
+    é acessível.
+
+    ## Módulos
+    Alguns endpoints exigem módulos específicos ativos no tenant:
+    - `/consents/*` → requer módulo `NEXUSLEGAL`
+
+  version: 1.0.0
+  contact:
+    name: Nexus Platform
+    email: dev@nexus.app
+
+servers:
+  - url: https://nexus-platform-x1r5.onrender.com
+    description: Produção (Render)
+  - url: http://localhost:3001
+    description: Desenvolvimento local
+
+tags:
+  - name: Health
+    description: Verificação de status do servidor e banco
+  - name: Auth
+    description: Autenticação — login, refresh e logout
+  - name: Patients
+    description: Gestão de pacientes do tenant
+  - name: Appointments
+    description: Agendamentos e agenda clínica
+  - name: Consents
+    description: Consentimentos LGPD (requer módulo NEXUSLEGAL)
+  - name: Audit Logs
+    description: Trilha de auditoria imutável (LGPD Art. 37)
+  - name: Root
+    description: Painel administrativo da plataforma (role ROOT)
+
+# ── Componentes reutilizáveis ─────────────────────────────────────────────
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Token JWT obtido via `POST /api/v1/auth/login`.
+        Expira em 15 minutos — use o refresh token para renovar.
+
+  schemas:
+    # ── Erros ──────────────────────────────────────────────────────────────
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Credenciais inválidas.
+
+    # ── Auth ───────────────────────────────────────────────────────────────
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: admin@saudetotal.com
+        password:
+          type: string
+          example: senha123
+
+    LoginResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: JWT com validade de 15 minutos
+        refresh_token:
+          type: string
+          format: uuid
+          description: Token de uso único para renovação (7 dias)
+        user:
+          $ref: '#/components/schemas/UserInfo'
+
+    UserInfo:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        role:
+          type: string
+          enum: [ROOT, TENANT_ADMIN, MEDICO, RECEPCIONISTA, FINANCEIRO, DPO_EXTERNO]
+        company_id:
+          type: string
+          format: uuid
+        tenant_type:
+          type: string
+          enum: [MED, CLIN, ODONTO, LAB, IMG, ADM]
+        modules:
+          type: array
+          items:
+            type: string
+          example: [NEXUSMED, NEXUSLEGAL]
+
+    RefreshRequest:
+      type: object
+      required: [refresh_token]
+      properties:
+        refresh_token:
+          type: string
+          format: uuid
+
+    RefreshResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+          format: uuid
+
+    # ── Patients ───────────────────────────────────────────────────────────
+    Patient:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: João da Silva
+        email:
+          type: string
+          format: email
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+          example: "(67) 99999-9999"
+        cpf:
+          type: string
+          nullable: true
+          example: "111.111.111-11"
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+        status:
+          type: string
+          example: ATIVO
+        created_at:
+          type: string
+          format: date-time
+
+    CreatePatientRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          example: João da Silva
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        cpf:
+          type: string
+        date_of_birth:
+          type: string
+          format: date
+
+    PaginatedPatients:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Patient'
+        total:
+          type: integer
+
+    # ── Appointments ───────────────────────────────────────────────────────
+    Appointment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        patient_id:
+          type: string
+          format: uuid
+        patient_name:
+          type: string
+          nullable: true
+        professional_id:
+          type: string
+          format: uuid
+          nullable: true
+        scheduled_date:
+          type: string
+          format: date-time
+        duration_minutes:
+          type: integer
+          example: 30
+        status:
+          type: string
+          enum: [AGENDADO, CONFIRMADO, EM_ATENDIMENTO, CONCLUIDO, CANCELADO, FALTOU]
+        notes:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    CreateAppointmentRequest:
+      type: object
+      required: [patient_id, scheduled_date]
+      properties:
+        patient_id:
+          type: string
+          format: uuid
+        professional_id:
+          type: string
+          format: uuid
+        scheduled_date:
+          type: string
+          format: date-time
+          example: "2026-04-01T09:00:00Z"
+        duration_minutes:
+          type: integer
+          default: 30
+        notes:
+          type: string
+
+    # ── Consents ───────────────────────────────────────────────────────────
+    Consent:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        patient_id:
+          type: string
+          format: uuid
+        patient_name:
+          type: string
+          nullable: true
+        term_version:
+          type: string
+          example: "1.0"
+        channel:
+          type: string
+          enum: [WHATSAPP, EMAIL, TABLET]
+        status:
+          type: string
+          enum: [PENDENTE, ASSINADO, RECUSADO, EXPIRADO, REVOGADO]
+        signed_at:
+          type: string
+          format: date-time
+          nullable: true
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    SendConsentRequest:
+      type: object
+      required: [patient_id]
+      properties:
+        patient_id:
+          type: string
+          format: uuid
+        channel:
+          type: string
+          enum: [WHATSAPP, EMAIL, TABLET]
+          default: WHATSAPP
+        term_version:
+          type: string
+          default: "1.0"
+
+    # ── Audit Logs ─────────────────────────────────────────────────────────
+    AuditLog:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+          nullable: true
+        user_name:
+          type: string
+          nullable: true
+        action:
+          type: string
+          enum: [INSERT, UPDATE, DELETE, VIEW]
+        table_name:
+          type: string
+          example: patients
+        record_id:
+          type: string
+          format: uuid
+          nullable: true
+        ip_address:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    # ── Root / Tenants ─────────────────────────────────────────────────────
+    Tenant:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        cnpj:
+          type: string
+          nullable: true
+        nome_fantasia:
+          type: string
+        tenant_type:
+          type: string
+          enum: [MED, CLIN, ODONTO, LAB, IMG, ADM]
+        status:
+          type: string
+          enum: [ACTIVE, TRIAL, BLOCKED, CANCELLED]
+        active_modules:
+          type: array
+          items:
+            type: string
+        user_count:
+          type: integer
+        trial_expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    CreateTenantRequest:
+      type: object
+      required: [nome_fantasia, tenant_type]
+      properties:
+        nome_fantasia:
+          type: string
+          example: Clínica São Lucas
+        cnpj:
+          type: string
+          example: "00.000.000/0001-00"
+        razao_social:
+          type: string
+        tenant_type:
+          type: string
+          enum: [MED, CLIN, ODONTO, LAB, IMG, ADM]
+        active_modules:
+          type: array
+          items:
+            type: string
+          example: [NEXUSMED, NEXUSLEGAL]
+        trial_days:
+          type: integer
+          default: 30
+
+    PlatformStats:
+      type: object
+      properties:
+        total_tenants:
+          type: integer
+        active_tenants:
+          type: integer
+        trial_tenants:
+          type: integer
+        blocked_tenants:
+          type: integer
+        cancelled_tenants:
+          type: integer
+        new_last_30d:
+          type: integer
+        total_users:
+          type: integer
+
+# ── Paths ─────────────────────────────────────────────────────────────────
+paths:
+
+  # ── Health ────────────────────────────────────────────────────────────
+  /health/live:
+    get:
+      tags: [Health]
+      summary: Liveness check
+      description: Verifica se o servidor está respondendo.
+      responses:
+        '200':
+          description: Servidor operacional
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  /health/ready:
+    get:
+      tags: [Health]
+      summary: Readiness check
+      description: Verifica se o servidor e o banco de dados estão prontos.
+      responses:
+        '200':
+          description: Sistema pronto
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  db:
+                    type: string
+                    example: connected
+        '503':
+          description: Banco de dados indisponível
+
+  # ── Auth ──────────────────────────────────────────────────────────────
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: Login
+      description: Autentica o usuário e retorna JWT + refresh token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login bem-sucedido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: Campos obrigatórios ausentes
+        '401':
+          description: Credenciais inválidas
+        '403':
+          description: Usuário bloqueado
+
+  /api/v1/auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Renovar token
+      description: |
+        Emite novo access token usando o refresh token.
+        O refresh token anterior é invalidado (rotação obrigatória).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '200':
+          description: Tokens renovados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshResponse'
+        '401':
+          description: Refresh token inválido ou expirado
+
+  /api/v1/auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout
+      description: Invalida o refresh token. O access token expira naturalmente em 15 min.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '200':
+          description: Logout realizado
+
+  # ── Patients ──────────────────────────────────────────────────────────
+  /api/v1/patients:
+    get:
+      tags: [Patients]
+      summary: Listar pacientes
+      description: |
+        Retorna pacientes do tenant autenticado.
+        Roles com acesso: ROOT, TENANT_ADMIN, MEDICO, RECEPCIONISTA, FINANCEIRO.
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Lista de pacientes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPatients'
+        '401':
+          description: Token ausente ou inválido
+        '403':
+          description: Role sem permissão
+
+    post:
+      tags: [Patients]
+      summary: Criar paciente
+      description: |
+        Cria novo paciente no tenant.
+        Roles com acesso: TENANT_ADMIN, RECEPCIONISTA.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePatientRequest'
+      responses:
+        '201':
+          description: Paciente criado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Patient'
+        '400':
+          description: Campo name obrigatório ausente
+        '401':
+          description: Token ausente ou inválido
+        '403':
+          description: Role sem permissão
+
+  # ── Appointments ──────────────────────────────────────────────────────
+  /api/v1/appointments:
+    get:
+      tags: [Appointments]
+      summary: Listar agendamentos
+      description: |
+        Retorna agendamentos do tenant. Suporta filtros por data, paciente e profissional.
+        Roles com acesso: ROOT, TENANT_ADMIN, MEDICO, RECEPCIONISTA, FINANCEIRO.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: date
+          in: query
+          schema:
+            type: string
+            format: date
+          example: "2026-04-01"
+        - name: patient_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: professional_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Lista de agendamentos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Appointment'
+                  total:
+                    type: integer
+        '401':
+          $ref: '#/components/schemas/Error'
+
+    post:
+      tags: [Appointments]
+      summary: Criar agendamento
+      description: |
+        Cria novo agendamento no tenant.
+        Roles com acesso: TENANT_ADMIN, RECEPCIONISTA, MEDICO.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAppointmentRequest'
+      responses:
+        '201':
+          description: Agendamento criado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Appointment'
+        '400':
+          description: Campos obrigatórios ausentes
+
+  # ── Consents ──────────────────────────────────────────────────────────
+  /api/v1/consents:
+    get:
+      tags: [Consents]
+      summary: Listar consentimentos
+      description: |
+        Retorna consentimentos LGPD do tenant.
+        **Requer módulo NEXUSLEGAL ativo.**
+        Roles com acesso: TENANT_ADMIN, MEDICO, RECEPCIONISTA, DPO_EXTERNO.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [PENDENTE, ASSINADO, RECUSADO, EXPIRADO, REVOGADO]
+        - name: patient_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Lista de consentimentos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Consent'
+                  total:
+                    type: integer
+        '403':
+          description: Módulo NEXUSLEGAL não ativo ou role sem permissão
+
+  /api/v1/consents/{id}:
+    get:
+      tags: [Consents]
+      summary: Consultar consentimento
+      description: Retorna status em tempo real de um consentimento específico.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Consentimento encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Consent'
+        '404':
+          description: Consentimento não encontrado
+
+  /api/v1/consents/send:
+    post:
+      tags: [Consents]
+      summary: Enviar termo de consentimento
+      description: |
+        Cria consentimento e aciona envio do TCLE via WhatsApp, e-mail ou tablet.
+        **Requer módulo NEXUSLEGAL ativo.**
+        Roles com acesso: TENANT_ADMIN, RECEPCIONISTA.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendConsentRequest'
+      responses:
+        '201':
+          description: Termo enviado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Consent'
+                  message:
+                    type: string
+                    example: Termo enviado via WHATSAPP.
+        '409':
+          description: Paciente já possui consentimento assinado para esta versão
+
+  /api/v1/consents/{id}/revoke:
+    post:
+      tags: [Consents]
+      summary: Revogar consentimento
+      description: |
+        Registra revogação de consentimento pelo titular (Art. 18 LGPD).
+        Roles com acesso: TENANT_ADMIN, RECEPCIONISTA.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Consentimento revogado
+        '404':
+          description: Consentimento não encontrado ou já revogado
+
+  # ── Audit Logs ────────────────────────────────────────────────────────
+  /api/v1/audit-logs:
+    get:
+      tags: [Audit Logs]
+      summary: Listar logs de auditoria
+      description: |
+        Retorna trilha de auditoria imutável do tenant (LGPD Art. 37).
+        Roles com acesso: TENANT_ADMIN, DPO_EXTERNO, ROOT.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: action
+          in: query
+          schema:
+            type: string
+            enum: [INSERT, UPDATE, DELETE, VIEW]
+        - name: table_name
+          in: query
+          schema:
+            type: string
+            example: patients
+        - name: user_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 200
+      responses:
+        '200':
+          description: Logs de auditoria
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AuditLog'
+                  total:
+                    type: integer
+
+  /api/v1/audit-logs/{record_id}:
+    get:
+      tags: [Audit Logs]
+      summary: Histórico de alterações de um registro
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: record_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Histórico do registro
+
+  # ── Root ──────────────────────────────────────────────────────────────
+  /api/v1/root/stats:
+    get:
+      tags: [Root]
+      summary: Métricas globais da plataforma
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Métricas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PlatformStats'
+
+  /api/v1/root/tenants:
+    get:
+      tags: [Root]
+      summary: Listar todos os tenants
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Lista de tenants
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Tenant'
+                  total:
+                    type: integer
+
+    post:
+      tags: [Root]
+      summary: Provisionar novo tenant
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTenantRequest'
+      responses:
+        '201':
+          description: Tenant provisionado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Tenant'
+
+  /api/v1/root/tenants/{id}/status:
+    patch:
+      tags: [Root]
+      summary: Alterar status do tenant
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [ACTIVE, BLOCKED, TRIAL, CANCELLED]
+      responses:
+        '200':
+          description: Status atualizado
+        '404':
+          description: Tenant não encontrado
+
+  /api/v1/root/tenants/{id}/modules:
+    patch:
+      tags: [Root]
+      summary: Atualizar módulos ativos do tenant
+      description: Controla o licenciamento — quais módulos o tenant tem acesso.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [active_modules]
+              properties:
+                active_modules:
+                  type: array
+                  items:
+                    type: string
+                  example: [NEXUSMED, NEXUSLEGAL, NEXUSADM]
+      responses:
+        '200':
+          description: Módulos atualizados
+        '400':
+          description: Módulos inválidos
+
+  /api/v1/root/tenants/{id}:
+    delete:
+      tags: [Root]
+      summary: Cancelar tenant (soft delete)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Tenant cancelado
+        '404':
+          description: Tenant não encontrado

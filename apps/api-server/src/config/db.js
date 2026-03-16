@@ -2,25 +2,25 @@ import pg from 'pg';
 
 const { Pool } = pg;
 
-// ── Pool principal — usuario nexus_app (NÃO owner, sujeito ao RLS) ────────
-// Usado em TODAS as queries após autenticação.
+const sslConfig = process.env.NODE_ENV === 'production'
+  ? { rejectUnauthorized: false }
+  : false;
+
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  ssl: sslConfig,
   max: 10,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  connectionTimeoutMillis: 5000,
 });
 
-// ── Pool de auth — usuario nexus (owner) APENAS para login ───────────────
-// O owner bypassa RLS. Necessário somente para buscar usuário pelo email
-// antes de conhecer o company_id. Não usar em nenhuma outra operação.
 export const authPool = new Pool({
   connectionString: process.env.DATABASE_URL_OWNER || process.env.DATABASE_URL,
+  ssl: sslConfig,
   max: 5,
   idleTimeoutMillis: 10000,
 });
 
-// ── Helper: seta contexto RLS antes de qualquer query de tenant ───────────
 export async function withTenantContext(client, companyId, fn) {
   await client.query(`SET app.current_company_id = '${companyId}'`);
   return fn(client);

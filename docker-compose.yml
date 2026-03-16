@@ -16,6 +16,7 @@ services:
       - ./packages/database/seeds/dev-seed.sql:/docker-entrypoint-initdb.d/02_seed.sql
       - ./packages/database/seeds/create-app-user.sql:/docker-entrypoint-initdb.d/03_app_user.sql
 
+
   redis:
     image: redis:7-alpine
     container_name: nexus_redis

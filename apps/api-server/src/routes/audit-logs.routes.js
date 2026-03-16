@@ -24,9 +24,10 @@ router.get('/', authenticate, authorize('audit_logs', 'read'), async (req, res) 
   const safeLimit = Math.min(Number(limit), 200);
   const offset = (Number(page) - 1) * safeLimit;
 
-  const client = await pool.connect();
-
+  let client;
   try {
+    client = await pool.connect();
+
     const result = await withTenantContext(client, req.user.company_id, (c) => {
       const filters = [];
       const params = [];
@@ -73,7 +74,7 @@ router.get('/', authenticate, authorize('audit_logs', 'read'), async (req, res) 
     console.error('[audit-logs] GET error:', err.message);
     return res.status(500).json({ error: 'Erro ao buscar logs de auditoria.' });
   } finally {
-    client.release();
+    if (client) client.release();
   }
 });
 

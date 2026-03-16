@@ -71,3 +71,5 @@ router.post('/send', authenticate, requireModule('NEXUSLEGAL'), authorize('conse
     return res.status(500).json({ error: 'Erro ao enviar consentimento.' });
   }
 });
+
+export default router;

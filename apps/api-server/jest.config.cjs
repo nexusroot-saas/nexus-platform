@@ -1,5 +1,5 @@
 module.exports = {
   testEnvironment: 'node',
-  testMatch: ['**/__tests__/**/*.test.js'],
-  transform: { '^.+\\.js$': 'babel-jest' },
+  testMatch: ['**/src/__tests__/**/*.test.js'],
+  transform: {},
 };

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authenticate } from '../middlewares/auth.middleware.js';
 import { authorize } from '../middlewares/rbac.middleware.js';
 import { pool, withTenantContext } from '../config/db.js';
+import { log, auditContextFromReq } from '../services/audit.service.js';
 
 const router = Router();
 
@@ -22,6 +23,9 @@ router.get('/', authenticate, authorize('patients', 'read'), async (req, res) =>
          ORDER BY name ASC`
       )
     );
+
+    // Audit: registra acesso à listagem de pacientes (fire-and-forget)
+    log({ ...auditContextFromReq(req), action: 'VIEW', table_name: 'patients' });
 
     return res.status(200).json({
       data: result.rows,
@@ -55,7 +59,15 @@ router.post('/', authenticate, authorize('patients', 'create'), async (req, res)
         `INSERT INTO patients (id, company_id, name, email, phone, date_of_birth, cpf, status, created_by)
          VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, 'ATIVO', $7)
          RETURNING id, name, email, phone, date_of_birth, cpf, status, created_at`,
-        [req.user.company_id, name, email || null, phone || null, date_of_birth || null, cpf || null, req.user.sub]
+        [
+          req.user.company_id,
+          name,
+          email || null,
+          phone || null,
+          date_of_birth || null,
+          cpf || null,
+          req.user.sub,
+        ]
       )
     );
 

@@ -1,0 +1,183 @@
+/* ============================================================
+   Nexus Design System — Temas por Submarca
+   Troca automática via classe no <body> injetada pelo App.jsx
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap');
+
+/* ── Reset ────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 400;
+  background: var(--bg);
+  color: var(--text);
+  transition: background 0.25s ease, color 0.25s ease;
+  min-height: 100vh;
+}
+code, pre, kbd { font-family: 'DM Mono', monospace; }
+a { color: var(--accent); text-decoration: none; }
+button { cursor: pointer; font-family: inherit; }
+input, select, textarea { font-family: inherit; }
+
+/* ── Tokens base (fallback / modo sem tema) ──────────────────────────── */
+:root {
+  /* Superfícies */
+  --bg:          #f5f5f3;
+  --surface:     #ffffff;
+  --surface-2:   #f0efed;
+  --border:      #e4e3e0;
+  --border-2:    #d0cfcc;
+
+  /* Texto */
+  --text:        #1a1a18;
+  --text-2:      #5a5a56;
+  --text-3:      #8a8a86;
+
+  /* Acento — sobrescrito por cada tema */
+  --accent:      #1a6cff;
+  --accent-soft: #e8f0ff;
+  --accent-dark: #1254cc;
+
+  /* Status */
+  --success:     #16a34a;
+  --success-soft:#dcfce7;
+  --warning:     #d97706;
+  --warning-soft:#fef3c7;
+  --danger:      #dc2626;
+  --danger-soft: #fee2e2;
+  --info:        #0284c7;
+  --info-soft:   #e0f2fe;
+
+  /* Layout */
+  --radius-sm:   6px;
+  --radius:      10px;
+  --radius-lg:   16px;
+  --radius-xl:   24px;
+  --shadow-sm:   0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow:      0 4px 12px rgba(0,0,0,.08), 0 1px 4px rgba(0,0,0,.04);
+  --shadow-lg:   0 12px 32px rgba(0,0,0,.10), 0 4px 8px rgba(0,0,0,.06);
+
+  /* Sidebar */
+  --sidebar-w:   240px;
+  --sidebar-bg:  #ffffff;
+  --sidebar-border: #e4e3e0;
+  --logo-color:  var(--accent);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   TEMAS POR SUBMARCA
+   Cada tema sobrescreve apenas --accent, --accent-soft, --accent-dark
+   e variantes de sidebar para criar a "personalidade" visual.
+══════════════════════════════════════════════════════════════════════ */
+
+/* NexusMed — Azul (#1a6cff) */
+.theme-med {
+  --accent:      #1a6cff;
+  --accent-soft: #e8f0ff;
+  --accent-dark: #1254cc;
+  --sidebar-bg:  #0a1628;
+  --sidebar-text:#c8d8f0;
+  --sidebar-text-active: #ffffff;
+  --sidebar-accent: #1a6cff;
+  --sidebar-border: #162040;
+  --logo-color:  #4a9eff;
+}
+
+/* NexusClin — Rosa (#e8457a) */
+.theme-clin {
+  --accent:      #e8457a;
+  --accent-soft: #fde8ef;
+  --accent-dark: #c43368;
+  --sidebar-bg:  #1f0d14;
+  --sidebar-text:#f0c8d8;
+  --sidebar-text-active: #ffffff;
+  --sidebar-accent: #e8457a;
+  --sidebar-border: #2e1020;
+  --logo-color:  #f08aaa;
+}
+
+/* NexusOdonto — Verde (#16a34a) */
+.theme-odonto {
+  --accent:      #16a34a;
+  --accent-soft: #dcfce7;
+  --accent-dark: #15803d;
+  --sidebar-bg:  #071812;
+  --sidebar-text:#b0d8c0;
+  --sidebar-text-active: #ffffff;
+  --sidebar-accent: #22c55e;
+  --sidebar-border: #0d2818;
+  --logo-color:  #4ade80;
+}
+
+/* NexusLab — Roxo (#7c3aed) */
+.theme-lab {
+  --accent:      #7c3aed;
+  --accent-soft: #ede9fe;
+  --accent-dark: #6d28d9;
+  --sidebar-bg:  #0e0a1e;
+  --sidebar-text:#c8b8f0;
+  --sidebar-text-active: #ffffff;
+  --sidebar-accent: #a78bfa;
+  --sidebar-border: #1a1030;
+  --logo-color:  #a78bfa;
+}
+
+/* NexusIMG — Laranja (#ea580c) */
+.theme-img {
+  --accent:      #ea580c;
+  --accent-soft: #ffedd5;
+  --accent-dark: #c2410c;
+  --sidebar-bg:  #1a0e06;
+  --sidebar-text:#f0c8a8;
+  --sidebar-text-active: #ffffff;
+  --sidebar-accent: #fb923c;
+  --sidebar-border: #2a1808;
+  --logo-color:  #fb923c;
+}
+
+/* NexusAdm — Teal (#0d9488) */
+.theme-adm {
+  --accent:      #0d9488;
+  --accent-soft: #ccfbf1;
+  --accent-dark: #0f766e;
+  --sidebar-bg:  #061614;
+  --sidebar-text:#a0d8d4;
+  --sidebar-text-active: #ffffff;
+  --sidebar-accent: #2dd4bf;
+  --sidebar-border: #0a2220;
+  --logo-color:  #2dd4bf;
+}
+
+/* ── Utilitários ──────────────────────────────────────────────────────── */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+
+/* Animações de entrada */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to   { background-position: 200% 0; }
+}
+
+.animate-fade-up  { animation: fadeUp 0.35s ease both; }
+.animate-fade-in  { animation: fadeIn 0.25s ease both; }
+
+/* Skeleton loader */
+.skeleton {
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--border) 50%, var(--surface-2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-sm);
+}

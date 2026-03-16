@@ -1,52 +1,27 @@
 
 services:
-
-  # ─── PostgreSQL 16 ────────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
-    container_name: nexus_postgres
+    container_name: nexus_db
     restart: unless-stopped
     environment:
       POSTGRES_USER: nexus
       POSTGRES_PASSWORD: nexus_dev_pass
       POSTGRES_DB: nexus_dev
     ports:
-      - "5432:5432"
+      - '5433:5432'
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U nexus -d nexus_dev"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - nexus_pgdata:/var/lib/postgresql/data
+      - ./supabase/migrations/20260313000001_initial_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+      - ./packages/database/seeds/dev-seed.sql:/docker-entrypoint-initdb.d/02_seed.sql
+      - ./packages/database/seeds/create-app-user.sql:/docker-entrypoint-initdb.d/03_app_user.sql
 
-  # ─── Redis 7 ──────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
     container_name: nexus_redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # ─── Redis Commander (UI para visualizar filas) ────────────────
-  redis-commander:
-    image: rediscommander/redis-commander:latest
-    container_name: nexus_redis_ui
-    restart: unless-stopped
-    environment:
-      REDIS_HOSTS: local:redis:6379
-    ports:
-      - "8081:8081"
-    depends_on:
-      - redis
+      - '6379:6379'
 
 volumes:
-  postgres_data:
-  redis_data:
+  nexus_pgdata:

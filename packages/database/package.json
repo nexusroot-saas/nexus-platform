@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "test": "node --experimental-vm-modules node_modules/.bin/jest",
+    "test": "jest",
     "migrate:dev": "psql $DATABASE_URL -f supabase/migrations/20260313000001_initial_schema.sql",
     "seed:dev": "psql $DATABASE_URL -f seeds/dev-seed.sql"
   },

@@ -25,18 +25,12 @@ afterAll(async () => {
 // ── Testes de isolamento de leitura ──────────────────────────────────────
 
 test('Tenant A NÃO deve ver pacientes do Tenant B (SELECT cross-tenant)', async () => {
-  const result = await clientA.query(
-    `SELECT id FROM patients WHERE company_id = $1`,
-    [TENANT_B]
-  );
+  const result = await clientA.query(`SELECT id FROM patients WHERE company_id = $1`, [TENANT_B]);
   expect(result.rowCount).toBe(0);
 });
 
 test('Tenant B NÃO deve ver pacientes do Tenant A (SELECT cross-tenant)', async () => {
-  const result = await clientB.query(
-    `SELECT id FROM patients WHERE company_id = $1`,
-    [TENANT_A]
-  );
+  const result = await clientB.query(`SELECT id FROM patients WHERE company_id = $1`, [TENANT_A]);
   expect(result.rowCount).toBe(0);
 });
 

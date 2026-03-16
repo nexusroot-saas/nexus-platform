@@ -6,7 +6,7 @@ export default defineConfig({
   server: {
     port: 5174,
     proxy: {
-      '/api': process.env.VITE_API_URL || 'http://localhost:3001',
+      '/api': process.env.VITE_API_URL || 'http://nexus-platform-x1r5.onrender.com',
     },
   },
 });

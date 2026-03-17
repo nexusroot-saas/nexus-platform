@@ -97,6 +97,21 @@ describe('GET /api/v1/patients — autenticação', () => {
   });
 });
 
+describe('GET /api/v1/document-templates — autenticação e existência de rota', () => {
+  test('401 sem token', async () => {
+    const res = await request(app).get('/api/v1/document-templates');
+    expect(res.status).toBe(401);
+  });
+
+  test('403 com token sem permissão documenttemplates:read', async () => {
+    const token = makeToken({ role: 'DPO_EXTERNO' });
+    const res = await request(app)
+      .get('/api/v1/document-templates')
+      .set('Authorization', `Bearer ${token}`);
+    expect(res.status).toBe(403);
+  });
+});
+
 describe('POST /api/v1/patients — validação', () => {
   test('401 sem token', async () => {
     const res = await request(app).post('/api/v1/patients').send({ name: 'Teste' });

@@ -14,6 +14,7 @@ import managerRoutes      from './routes/manager.routes.js';
 import webhookRoutes      from './routes/webhook.routes.js';
 import storageRoutes      from './routes/storage.routes.js';
 import docsRoutes         from './routes/docs.routes.js';
+import documentTemplatesRoutes from './routes/document-templates.routes.js';
 import homeRoutes         from './routes/home.routes.js';
 import { startQueueProcessor } from './queues/webhook-queue.js';
 
@@ -58,8 +59,7 @@ app.use('/api/v1/audit-logs',      auditLogsRoutes);
 app.use('/api/v1/storage',         storageRoutes);
 
 // ── NexusManager — gestor da unidade (TENANT_ADMIN) ───────────────────────
-app.use('/api/v1/manager',         managerRoutes);
-
+app.use('/api/v1/manager',         managerRoutes);app.use('/api/v1/document-templates', documentTemplatesRoutes);
 // ── NexusRoot — painel da plataforma (ROOT) ───────────────────────────────
 app.use('/api/v1/root/users',      rootUsersRoutes);
 app.use('/api/v1/root',            rootRoutes);

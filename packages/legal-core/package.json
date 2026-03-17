@@ -1,10 +1,9 @@
 {
-  "name": "@nexus/legal-core",
+  "name": "nexus-legal-core",
   "version": "0.1.0",
   "type": "module",
-  "private": true,
   "main": "src/index.js",
-  "scripts": {
-    "test": "echo 'no tests yet'"
+  "dependencies": {
+    "puppeteer": "^22.0.0"
   }
 }

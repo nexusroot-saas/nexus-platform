@@ -4,6 +4,11 @@
  * Legenda: R=read C=create U=update D=delete
  */
 const PERMISSIONS = {
+  // ... outros recursos existentes
+  documenttemplates: {
+    read: ['TENANTADMIN', 'MEDICO', 'RECEPCIONISTA'],
+    update: ['TENANTADMIN']
+  },
   ROOT: {
     patients: ['read', 'create', 'update'],
     appointments: ['read'],

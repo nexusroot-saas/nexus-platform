@@ -6,6 +6,17 @@
     "apps/*",
     "packages/*"
   ],
+
+  "name": "nexus-platform",
+  "version": "1.0.0",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "packages/legal-core"
+  ],
+
+
   "scripts": {
     "dev": "npm run dev --workspace=apps/api-server",
     "dev:api": "npm run dev --workspace=apps/api-server",

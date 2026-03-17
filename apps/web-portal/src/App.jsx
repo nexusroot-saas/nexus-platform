@@ -6,6 +6,9 @@ import DashboardPage from './pages/DashboardPage.jsx';
 import PatientsPage from './pages/PatientsPage.jsx';
 import ConsentsPage from './pages/ConsentsPage.jsx';
 import AuditLogsPage from './pages/AuditLogsPage.jsx';
+import ManagerDashboardPage from './pages/manager/ManagerDashboardPage.jsx';
+import ManagerUsersPage from './pages/manager/ManagerUsersPage.jsx';
+import ManagerSettingsPage from './pages/manager/ManagerSettingsPage.jsx';
 
 /**
  * Mapa de tenant_type → classe CSS de tema
@@ -77,6 +80,9 @@ export default function App() {
           </ProtectedRoute>
         }
       />
+      <Route path="/manager" element={<ProtectedRoute><ManagerDashboardPage /></ProtectedRoute>} />
+      <Route path="/manager/users" element={<ProtectedRoute><ManagerUsersPage /></ProtectedRoute>} />
+      <Route path="/manager/settings" element={<ProtectedRoute><ManagerSettingsPage /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

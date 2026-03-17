@@ -74,9 +74,15 @@ export async function enqueueWebhook({
   }
 }
 
+async function ensureQueueTable() {
+  await pool.query(ENSURE_TABLE_SQL);
+}
+
 // ── Processar próximas mensagens pendentes ───────────────────────────────
 export async function processQueue() {
   try {
+    await ensureQueueTable();
+
     // Pega até 10 mensagens prontas para processar
     const { rows } = await pool.query(
       `UPDATE public.webhook_queue
@@ -207,6 +213,7 @@ async function handleMessageReceived(payload, company_id) {
 
 // ── DLQ: estatísticas para o NexusRoot ──────────────────────────────────
 export async function getQueueStats() {
+  await ensureQueueTable();
   const { rows } = await pool.query(
     `SELECT
        COUNT(*) FILTER (WHERE status = 'PENDING')     AS pending,
@@ -222,6 +229,7 @@ export async function getQueueStats() {
 }
 
 export async function getDLQItems(limit = 50) {
+  await ensureQueueTable();
   const { rows } = await pool.query(
     `SELECT id, message_id, event_type, provider, attempts, error_log, created_at
      FROM public.webhook_queue
@@ -234,6 +242,7 @@ export async function getDLQItems(limit = 50) {
 }
 
 export async function retryDLQItem(id) {
+  await ensureQueueTable();
   await pool.query(
     `UPDATE public.webhook_queue
      SET status = 'PENDING', attempts = 0, next_attempt_at = NOW(), error_log = NULL, updated_at = NOW()

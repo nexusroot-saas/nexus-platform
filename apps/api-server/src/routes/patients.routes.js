@@ -1,60 +1,100 @@
+// apps/api-server/src/routes/patients.routes.js
+// ✅ RLS + Auth + RBAC + Audit Completo - Nexus Platform
+// SEM JWT Dashboard - Usa current_setting('app.currentcompanyid')
+
 import { Router } from 'express';
 import { authenticate } from '../middlewares/auth.middleware.js';
 import { authorize } from '../middlewares/rbac.middleware.js';
-import { pool, withTenantContext } from '../config/db.js';
-import { log, auditContextFromReq } from '../services/audit.service.js';
+import { pool } from '../config/db.js';
+import { auditContextFromReq, log } from '../services/audit.service.js';
 
 const router = Router();
 
+// GET /api/v1/patients - Lista pacientes do tenant (RLS filtra!)
 router.get('/', authenticate, authorize('patients', 'read'), async (req, res) => {
   const client = await pool.connect();
+
   try {
-    const result = await withTenantContext(client, req.user.company_id, (c, companyId) =>
-      c.query(
-        `SELECT id, name, email, phone, date_of_birth, cpf, status, created_at
-         FROM patients
-         WHERE company_id = $1
-           AND deleted_at IS NULL
-         ORDER BY name ASC`,
-        [companyId]
-      )
+    // ✅ SET contexto tenant ANTES de qualquer query
+    await client.query('SET app.currentcompanyid = $1', [req.user.companyid]);
+
+    // ✅ RLS filtra AUTOMATICAMENTE por companyid
+    const result = await client.query(`
+        SELECT 
+          id, name, cpf, email, phone, 
+          birthdate, createdat, updatedat
+        FROM patients 
+        ORDER BY name ASC
+      `);
+
+    // ✅ Log de auditoria
+    await log(
+      {
+        ...auditContextFromReq(req),
+        action: 'VIEW',
+        tablename: 'patients',
+        recordcount: result.rows.length,
+      },
+      client
     );
-    log({ ...auditContextFromReq(req), action: 'VIEW', table_name: 'patients' });
-    return res.status(200).json({ data: result.rows, total: result.rowCount });
-  } catch (err) {
-    console.error('[patients] GET error:', err.message);
-    return res.status(500).json({ error: 'Erro ao buscar pacientes.' });
+
+    res.status(200).json({
+      success: true,
+      data: result.rows,
+      total: result.rows.length,
+      message: `${result.rows.length} pacientes encontrados`,
+    });
+  } catch (error) {
+    console.error('Patients list error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erro interno ao listar pacientes',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
   } finally {
     client.release();
   }
 });
 
-router.post('/', authenticate, authorize('patients', 'create'), async (req, res) => {
-  const { name, email, phone, date_of_birth, cpf } = req.body;
-  if (!name) return res.status(400).json({ error: 'O campo name é obrigatório.' });
-
+// GET /api/v1/patients/:id - Paciente específico
+router.get('/:id', authenticate, authorize('patients', 'read'), async (req, res) => {
   const client = await pool.connect();
+
   try {
-    const result = await withTenantContext(client, req.user.company_id, (c, companyId) =>
-      c.query(
-        `INSERT INTO patients (id, company_id, name, email, phone, date_of_birth, cpf, status, created_by)
-         VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, 'ATIVO', $7)
-         RETURNING id, name, email, phone, date_of_birth, cpf, status, created_at`,
-        [
-          companyId,
-          name,
-          email || null,
-          phone || null,
-          date_of_birth || null,
-          cpf || null,
-          req.user.sub,
-        ]
-      )
+    await client.query('SET app.currentcompanyid = $1', [req.user.companyid]);
+
+    const result = await client.query(
+      'SELECT id, name, cpf, email, phone, birthdate, createdat, updatedat FROM patients WHERE id = $1',
+      [req.params.id]
     );
-    return res.status(201).json({ data: result.rows[0] });
-  } catch (err) {
-    console.error('[patients] POST error:', err.message);
-    return res.status(500).json({ error: 'Erro ao criar paciente.' });
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Paciente não encontrado',
+      });
+    }
+
+    await log(
+      {
+        ...auditContextFromReq(req),
+        action: 'VIEW',
+        tablename: 'patients',
+        recordid: req.params.id,
+      },
+      client
+    );
+
+    res.status(200).json({
+      success: true,
+      data: result.rows[0],
+    });
+  } catch (error) {
+    console.error('Patient get error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erro ao buscar paciente',
+    });
   } finally {
     client.release();
   }

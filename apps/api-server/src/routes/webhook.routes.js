@@ -30,26 +30,17 @@ import {
 const router = Router();
 
 // ── Helpers ──────────────────────────────────────────────────────────────
-
-/**
- * Valida assinatura HMAC-SHA256 do Meta/WhatsApp
- * Header: X-Hub-Signature-256: sha256=<hmac>
- */
 function validateHubSignature(secret, rawBody, signature) {
   if (!signature || !signature.startsWith('sha256=')) return false;
   const expected = createHmac('sha256', secret).update(rawBody).digest('hex');
   const received = signature.slice('sha256='.length);
   try {
     return timingSafeEqual(Buffer.from(expected, 'hex'), Buffer.from(received, 'hex'));
-  } catch (error) {
+  } catch {
     return false;
   }
 }
 
-/**
- * Extrai company_id a partir do número de telefone do destinatário
- * (cada tenant tem um número WhatsApp registrado)
- */
 async function resolveCompanyByPhone(phone) {
   if (!phone) return null;
   try {
@@ -62,24 +53,32 @@ async function resolveCompanyByPhone(phone) {
     );
     return rows[0]?.id || null;
   } catch (error) {
+    console.error('[WEBHOOK] resolveCompanyByPhone error:', error.message);
     return null;
   }
 }
 
-/**
- * Normaliza eventos de diferentes provedores (Meta Cloud API / Twilio)
- * para um formato interno padronizado
- */
+function classifyMessage(msg) {
+  if (msg.interactive) {
+    const reply = msg.interactive?.button_reply?.id || msg.interactive?.list_reply?.id || '';
+    if (reply.includes('consent_sign') || reply.includes('tcle_aceitar')) return 'consent.signed';
+    if (reply.includes('appt_confirm') || reply.includes('consulta_confirmar'))
+      return 'appointment.confirmed';
+  }
+  if (msg.text?.body) {
+    const text = msg.text.body.toLowerCase().trim();
+    if (['sim', '1', 'confirmar', 'confirmo'].includes(text)) return 'appointment.confirmed';
+    if (['aceito', 'aceitar', 'concordo'].includes(text)) return 'consent.signed';
+  }
+  return 'message.received';
+}
+
 function normalizeWhatsAppEvent(body, provider) {
   const events = [];
-
   if (provider === 'meta') {
-    // Meta WhatsApp Cloud API
     for (const entry of body.entry || []) {
       for (const change of entry.changes || []) {
         const value = change.value || {};
-
-        // Mensagens recebidas
         for (const msg of value.messages || []) {
           events.push({
             message_id: msg.id,
@@ -92,8 +91,6 @@ function normalizeWhatsAppEvent(body, provider) {
             raw: msg,
           });
         }
-
-        // Status de entrega
         for (const status of value.statuses || []) {
           events.push({
             message_id: `status-${status.id}-${status.status}`,
@@ -107,7 +104,6 @@ function normalizeWhatsAppEvent(body, provider) {
       }
     }
   } else if (provider === 'twilio') {
-    // Twilio WhatsApp
     events.push({
       message_id: body.MessageSid || `twilio-${Date.now()}`,
       event_type: 'message.received',
@@ -117,50 +113,24 @@ function normalizeWhatsAppEvent(body, provider) {
       raw: body,
     });
   }
-
   return events;
 }
 
-/**
- * Classifica o tipo de mensagem para determinar o handler correto
- */
-function classifyMessage(msg) {
-  // Resposta interativa — verificar se é confirmação de consulta ou aceite de TCLE
-  if (msg.interactive) {
-    const reply = msg.interactive?.button_reply?.id || msg.interactive?.list_reply?.id || '';
-    if (reply.includes('consent_sign') || reply.includes('tcle_aceitar')) return 'consent.signed';
-    if (reply.includes('appt_confirm') || reply.includes('consulta_confirmar'))
-      return 'appointment.confirmed';
-  }
-  // Texto simples — pode ser resposta a template
-  if (msg.text?.body) {
-    const text = msg.text.body.toLowerCase().trim();
-    if (['sim', '1', 'confirmar', 'confirmo'].includes(text)) return 'appointment.confirmed';
-    if (['aceito', 'aceitar', 'concordo'].includes(text)) return 'consent.signed';
-  }
-  return 'message.received';
-}
-
-// ── GET /api/v1/webhooks/whatsapp ────────────────────────────────────────
-// Verificação de webhook exigida pela Meta ao registrar o endpoint
+// ── Rotas ────────────────────────────────────────────────────────────────
 router.get('/whatsapp', (req, res) => {
   const mode = req.query['hub.mode'];
   const token = req.query['hub.verify_token'];
   const challenge = req.query['hub.challenge'];
-
   const expectedToken = process.env.WHATSAPP_WEBHOOK_SECRET || 'nexus-webhook-dev';
 
   if (mode === 'subscribe' && token === expectedToken) {
     console.log('[WEBHOOK] Webhook WhatsApp verificado com sucesso');
     return res.status(200).send(challenge);
   }
-
   console.warn('[WEBHOOK] Verificação falhou — token inválido');
   return res.status(403).json({ error: 'Verificação falhou.' });
 });
 
-// ── POST /api/v1/webhooks/whatsapp ───────────────────────────────────────
-// Receptor principal — ACK < 200ms + enfileirar para processamento assíncrono
 router.post('/whatsapp', async (req, res) => {
   const startTime = Date.now();
   const signature = req.headers['x-hub-signature-256'] || req.headers['x-twilio-signature'];
@@ -168,7 +138,6 @@ router.post('/whatsapp', async (req, res) => {
   const provider = req.headers['x-twilio-signature'] ? 'twilio' : 'meta';
   const secret = process.env.WHATSAPP_WEBHOOK_SECRET || 'nexus-webhook-dev';
 
-  // ── 1. Validar assinatura HMAC (pular em dev se secret não configurado) ──
   if (process.env.NODE_ENV === 'production') {
     const valid = validateHubSignature(secret, rawBody, signature);
     if (!valid) {
@@ -177,17 +146,13 @@ router.post('/whatsapp', async (req, res) => {
     }
   }
 
-  // ── 2. ACK imediato — responder antes de processar (Seção 14.1) ─────────
   res.status(200).json({ status: 'received' });
 
-  // ── 3. Processar em background ───────────────────────────────────────────
   setImmediate(async () => {
     try {
       const events = normalizeWhatsAppEvent(req.body, provider);
-
       for (const event of events) {
         const company_id = await resolveCompanyByPhone(event.to);
-
         await enqueueWebhook({
           message_id: event.message_id,
           event_type: event.event_type,
@@ -196,7 +161,6 @@ router.post('/whatsapp', async (req, res) => {
           company_id,
         });
       }
-
       const elapsed = Date.now() - startTime;
       console.log(`[WEBHOOK] ${events.length} evento(s) enfileirado(s) em ${elapsed}ms`);
     } catch (error) {
@@ -205,12 +169,9 @@ router.post('/whatsapp', async (req, res) => {
   });
 });
 
-// ── GET /api/v1/webhooks/stats ───────────────────────────────────────────
-// Métricas da fila para o NexusRoot (Seção 14.5)
 router.get('/stats', authenticate, authorize('tenants', 'read'), async (_req, res) => {
   try {
     const stats = await getQueueStats();
-
     const total = Number(stats.received_last_hour) || 0;
     const success = Number(stats.done_last_hour) || 0;
     const successRate = total > 0 ? ((success / total) * 100).toFixed(1) : '100.0';
@@ -243,24 +204,22 @@ router.get('/stats', authenticate, authorize('tenants', 'read'), async (_req, re
   }
 });
 
-// ── GET /api/v1/webhooks/dlq ─────────────────────────────────────────────
-// Dead Letter Queue — mensagens que excederam todas as tentativas
 router.get('/dlq', authenticate, authorize('tenants', 'read'), async (_req, res) => {
   try {
     const items = await getDLQItems(50);
     return res.status(200).json({ data: items, total: items.length });
   } catch (error) {
+    console.error('[WEBHOOK] dlq error:', error.message);
     return res.status(500).json({ error: 'Erro ao buscar DLQ.' });
   }
 });
 
-// ── POST /api/v1/webhooks/dlq/:id/retry ─────────────────────────────────
-// Reprocessar item da DLQ manualmente (NexusRoot)
 router.post('/dlq/:id/retry', authenticate, authorize('tenants', 'update'), async (req, res) => {
   try {
     await retryDLQItem(req.params.id);
     return res.status(200).json({ message: 'Item reinserido na fila com sucesso.' });
   } catch (error) {
+    console.error('[WEBHOOK] retry error:', error.message);
     return res.status(500).json({ error: 'Erro ao reprocessar item.' });
   }
 });

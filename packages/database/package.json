@@ -5,8 +5,10 @@
   "private": true,
   "scripts": {
     "test": "jest",
-    "migrate:dev": "psql $DATABASE_URL -f supabase/migrations/20260313000001_initial_schema.sql",
-    "seed:dev": "psql $DATABASE_URL -f seeds/dev-seed.sql"
+    "migrate": "psql $DATABASE_URL -f supabase/migrations/20260313000001_initial_schema.sql",
+    "seed": "psql $DATABASE_URL -f seeds/dev-seed.sql",
+    "migrate:dev": "npm run migrate",
+    "seed:dev": "npm run seed"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.24.0",

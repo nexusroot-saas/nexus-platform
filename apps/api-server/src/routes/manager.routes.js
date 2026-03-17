@@ -6,12 +6,14 @@ import bcrypt from 'bcryptjs';
 
 const router = Router();
 
+// GET users
 router.get('/users', authenticate, authorize('users', 'read'), async (req, res) => {
   const { status, role } = req.query;
   const companyId = req.user.company_id;
   try {
     const filters = ['u.company_id = $1', 'u.deleted_at IS NULL'];
     const params = [companyId];
+
     if (status) {
       params.push(status);
       filters.push(`u.status = $${params.length}`);
@@ -20,23 +22,30 @@ router.get('/users', authenticate, authorize('users', 'read'), async (req, res) 
       params.push(role);
       filters.push(`u.role = $${params.length}`);
     }
+
     const { rows } = await pool.query(
       `SELECT id, name, email, role, status, last_login_at, created_at
        FROM users u WHERE ${filters.join(' AND ')}
        ORDER BY CASE status WHEN 'PENDING' THEN 0 WHEN 'ACTIVE' THEN 1 ELSE 2 END, name ASC`,
       params
     );
+
     return res.status(200).json({ data: rows, total: rows.length });
   } catch (error) {
     console.error('[manager/users] GET error:', error.message);
+    return res.status(500).json({ error: 'Erro ao buscar usuários.', details: error.message });
   }
 });
 
+// POST users
 router.post('/users', authenticate, authorize('users', 'create'), async (req, res) => {
   const { name, email, role, password } = req.body;
   const companyId = req.user.company_id;
-  if (!name || !email || !password)
+
+  if (!name || !email || !password) {
     return res.status(400).json({ error: 'name, email e password são obrigatórios.' });
+  }
+
   try {
     const hash = await bcrypt.hash(password, 10);
     const { rows } = await pool.query(
@@ -47,10 +56,15 @@ router.post('/users', authenticate, authorize('users', 'create'), async (req, re
     );
     return res.status(201).json({ data: rows[0] });
   } catch (error) {
-    if (error.code === '23505') return res.status(409).json({ error: 'E-mail já cadastrado.' });
+    console.error('[manager/users] POST error:', error.message);
+    if (error.code === '23505') {
+      return res.status(409).json({ error: 'E-mail já cadastrado.' });
+    }
+    return res.status(500).json({ error: 'Erro ao criar usuário.', details: error.message });
   }
 });
 
+// PATCH approve user
 router.patch('/users/:id/approve', authenticate, authorize('users', 'update'), async (req, res) => {
   const { role } = req.body;
   const companyId = req.user.company_id;
@@ -61,14 +75,17 @@ router.patch('/users/:id/approve', authenticate, authorize('users', 'update'), a
        RETURNING id, name, email, role, status`,
       [role || null, req.params.id, companyId]
     );
-    if (rowCount === 0)
+    if (rowCount === 0) {
       return res.status(404).json({ error: 'Usuário não encontrado ou já aprovado.' });
+    }
     return res.status(200).json({ data: rows[0] });
   } catch (error) {
-    return res.status(500).json({ error: 'Erro ao aprovar usuário.' });
+    console.error('[manager/users] APPROVE error:', error.message);
+    return res.status(500).json({ error: 'Erro ao aprovar usuário.', details: error.message });
   }
 });
 
+// PATCH update user
 router.patch('/users/:id', authenticate, authorize('users', 'update'), async (req, res) => {
   const { name, role, status } = req.body;
   const companyId = req.user.company_id;
@@ -79,13 +96,17 @@ router.patch('/users/:id', authenticate, authorize('users', 'update'), async (re
        RETURNING id, name, email, role, status, updated_at`,
       [name || null, role || null, status || null, req.params.id, companyId]
     );
-    if (rowCount === 0) return res.status(404).json({ error: 'Usuário não encontrado.' });
+    if (rowCount === 0) {
+      return res.status(404).json({ error: 'Usuário não encontrado.' });
+    }
     return res.status(200).json({ data: rows[0] });
   } catch (error) {
-    return res.status(500).json({ error: 'Erro ao atualizar usuário.' });
+    console.error('[manager/users] UPDATE error:', error.message);
+    return res.status(500).json({ error: 'Erro ao atualizar usuário.', details: error.message });
   }
 });
 
+// POST reset password
 router.post(
   '/users/:id/reset-password',
   authenticate,
@@ -93,22 +114,29 @@ router.post(
   async (req, res) => {
     const { new_password } = req.body;
     const companyId = req.user.company_id;
-    if (!new_password || new_password.length < 8)
+
+    if (!new_password || new_password.length < 8) {
       return res.status(400).json({ error: 'Senha deve ter no mínimo 8 caracteres.' });
+    }
+
     try {
       const hash = await bcrypt.hash(new_password, 10);
       const { rowCount } = await pool.query(
         `UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2 AND company_id = $3 AND deleted_at IS NULL`,
         [hash, req.params.id, companyId]
       );
-      if (rowCount === 0) return res.status(404).json({ error: 'Usuário não encontrado.' });
+      if (rowCount === 0) {
+        return res.status(404).json({ error: 'Usuário não encontrado.' });
+      }
       return res.status(200).json({ message: 'Senha redefinida com sucesso.' });
     } catch (error) {
-      return res.status(500).json({ error: 'Erro ao redefinir senha.' });
+      console.error('[manager/users] RESET-PASSWORD error:', error.message);
+      return res.status(500).json({ error: 'Erro ao redefinir senha.', details: error.message });
     }
   }
 );
 
+// DELETE user
 router.delete('/users/:id', authenticate, authorize('users', 'delete'), async (req, res) => {
   const companyId = req.user.company_id;
   try {
@@ -118,14 +146,17 @@ router.delete('/users/:id', authenticate, authorize('users', 'delete'), async (r
        RETURNING id, name, status`,
       [req.params.id, companyId]
     );
-    if (rowCount === 0)
+    if (rowCount === 0) {
       return res.status(404).json({ error: 'Usuário não encontrado ou é o administrador.' });
+    }
     return res.status(200).json({ data: rows[0] });
   } catch (error) {
-    return res.status(500).json({ error: 'Erro ao desativar usuário.' });
+    console.error('[manager/users] DELETE error:', error.message);
+    return res.status(500).json({ error: 'Erro ao desativar usuário.', details: error.message });
   }
 });
 
+// GET settings
 router.get('/settings', authenticate, authorize('branding', 'read'), async (req, res) => {
   try {
     const { rows } = await pool.query(
@@ -133,13 +164,17 @@ router.get('/settings', authenticate, authorize('branding', 'read'), async (req,
        FROM companies WHERE id = $1`,
       [req.user.company_id]
     );
-    if (rows.length === 0) return res.status(404).json({ error: 'Empresa não encontrada.' });
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Empresa não encontrada.' });
+    }
     return res.status(200).json({ data: rows[0] });
   } catch (error) {
-    return res.status(500).json({ error: 'Erro ao buscar configurações.' });
+    console.error('[manager/settings] GET error:', error.message);
+    return res.status(500).json({ error: 'Erro ao buscar configurações.', details: error.message });
   }
 });
 
+// PATCH settings
 router.patch('/settings', authenticate, authorize('branding', 'update'), async (req, res) => {
   const { nome_fantasia, razao_social, config_branding } = req.body;
   try {
@@ -155,7 +190,10 @@ router.patch('/settings', authenticate, authorize('branding', 'update'), async (
     );
     return res.status(200).json({ data: rows[0] });
   } catch (error) {
-    return res.status(500).json({ error: 'Erro ao atualizar configurações.' });
+    console.error('[manager/settings] PATCH error:', error.message);
+    return res
+      .status(500)
+      .json({ error: 'Erro ao atualizar configurações.', details: error.message });
   }
 });
 

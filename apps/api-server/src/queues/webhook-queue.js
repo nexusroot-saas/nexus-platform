@@ -169,8 +169,7 @@ async function handleEvent(event_type, payload, company_id) {
 
 // P0 — Aceite de TCLE LGPD (SLA < 30 segundos)
 async function handleConsentSigned(payload, company_id) {
-  const { patient_id, consent_id, signed_at, ip_address } = payload;
-
+  const { consent_id, signed_at, ip_address } = payload;
   await pool.query(
     `UPDATE public.consents
      SET status = 'ASSINADO', signed_at = $1, ip_address = $2, updated_at = NOW()
@@ -190,7 +189,7 @@ async function handleConsentSigned(payload, company_id) {
 
 // P1 — Confirmação de consulta (SLA < 2 minutos)
 async function handleAppointmentConfirmed(payload, company_id) {
-  const { appointment_id, patient_phone } = payload;
+  const { appointment_id } = payload;
 
   await pool.query(
     `UPDATE public.appointments
@@ -203,7 +202,7 @@ async function handleAppointmentConfirmed(payload, company_id) {
 }
 
 // P2 — Mensagem genérica recebida (SLA < 1 hora)
-async function handleMessageReceived(payload, company_id) {
+async function handleMessageReceived(payload, _company_id) {
   // Logar para auditoria — integração com atendimento humano futura
   console.log(
     `[QUEUE] P2 message.received: from=${payload.from} body="${payload.text?.body?.slice(0, 50)}"`

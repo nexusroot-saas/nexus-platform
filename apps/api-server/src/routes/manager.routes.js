@@ -27,9 +27,8 @@ router.get('/users', authenticate, authorize('users', 'read'), async (req, res) 
       params
     );
     return res.status(200).json({ data: rows, total: rows.length });
-  } catch (err) {
-    console.error('[manager/users] GET error:', err.message);
-    return res.status(500).json({ error: 'Erro ao buscar usuários.' });
+  } catch (error) {
+    console.error('[manager/users] GET error:', error.message);
   }
 });
 
@@ -47,9 +46,8 @@ router.post('/users', authenticate, authorize('users', 'create'), async (req, re
       [companyId, name, email, hash, role || 'RECEPCIONISTA']
     );
     return res.status(201).json({ data: rows[0] });
-  } catch (err) {
-    if (err.code === '23505') return res.status(409).json({ error: 'E-mail já cadastrado.' });
-    return res.status(500).json({ error: 'Erro ao criar usuário.' });
+  } catch (error) {
+    if (error.code === '23505') return res.status(409).json({ error: 'E-mail já cadastrado.' });
   }
 });
 
@@ -66,7 +64,7 @@ router.patch('/users/:id/approve', authenticate, authorize('users', 'update'), a
     if (rowCount === 0)
       return res.status(404).json({ error: 'Usuário não encontrado ou já aprovado.' });
     return res.status(200).json({ data: rows[0] });
-  } catch (err) {
+  } catch (error) {
     return res.status(500).json({ error: 'Erro ao aprovar usuário.' });
   }
 });
@@ -83,7 +81,7 @@ router.patch('/users/:id', authenticate, authorize('users', 'update'), async (re
     );
     if (rowCount === 0) return res.status(404).json({ error: 'Usuário não encontrado.' });
     return res.status(200).json({ data: rows[0] });
-  } catch (err) {
+  } catch (error) {
     return res.status(500).json({ error: 'Erro ao atualizar usuário.' });
   }
 });
@@ -105,7 +103,7 @@ router.post(
       );
       if (rowCount === 0) return res.status(404).json({ error: 'Usuário não encontrado.' });
       return res.status(200).json({ message: 'Senha redefinida com sucesso.' });
-    } catch (err) {
+    } catch (error) {
       return res.status(500).json({ error: 'Erro ao redefinir senha.' });
     }
   }
@@ -123,7 +121,7 @@ router.delete('/users/:id', authenticate, authorize('users', 'delete'), async (r
     if (rowCount === 0)
       return res.status(404).json({ error: 'Usuário não encontrado ou é o administrador.' });
     return res.status(200).json({ data: rows[0] });
-  } catch (err) {
+  } catch (error) {
     return res.status(500).json({ error: 'Erro ao desativar usuário.' });
   }
 });
@@ -137,7 +135,7 @@ router.get('/settings', authenticate, authorize('branding', 'read'), async (req,
     );
     if (rows.length === 0) return res.status(404).json({ error: 'Empresa não encontrada.' });
     return res.status(200).json({ data: rows[0] });
-  } catch (err) {
+  } catch (error) {
     return res.status(500).json({ error: 'Erro ao buscar configurações.' });
   }
 });
@@ -156,7 +154,7 @@ router.patch('/settings', authenticate, authorize('branding', 'update'), async (
       ]
     );
     return res.status(200).json({ data: rows[0] });
-  } catch (err) {
+  } catch (error) {
     return res.status(500).json({ error: 'Erro ao atualizar configurações.' });
   }
 });

@@ -41,7 +41,7 @@ function validateHubSignature(secret, rawBody, signature) {
   const received = signature.slice('sha256='.length);
   try {
     return timingSafeEqual(Buffer.from(expected, 'hex'), Buffer.from(received, 'hex'));
-  } catch {
+  } catch (error) {
     return false;
   }
 }
@@ -61,7 +61,7 @@ async function resolveCompanyByPhone(phone) {
       [phone]
     );
     return rows[0]?.id || null;
-  } catch {
+  } catch (error) {
     return null;
   }
 }
@@ -199,8 +199,8 @@ router.post('/whatsapp', async (req, res) => {
 
       const elapsed = Date.now() - startTime;
       console.log(`[WEBHOOK] ${events.length} evento(s) enfileirado(s) em ${elapsed}ms`);
-    } catch (err) {
-      console.error('[WEBHOOK] Erro ao enfileirar:', err.message);
+    } catch (error) {
+      console.error('[WEBHOOK] Erro ao enfileirar:', error.message);
     }
   });
 });
@@ -237,8 +237,8 @@ router.get('/stats', authenticate, authorize('tenants', 'read'), async (_req, re
         dlq_alert: Number(stats.dlq) > 10,
       },
     });
-  } catch (err) {
-    console.error('[WEBHOOK] stats error:', err.message);
+  } catch (error) {
+    console.error('[WEBHOOK] stats error:', error.message);
     return res.status(500).json({ error: 'Erro ao buscar métricas.' });
   }
 });
@@ -249,7 +249,7 @@ router.get('/dlq', authenticate, authorize('tenants', 'read'), async (_req, res)
   try {
     const items = await getDLQItems(50);
     return res.status(200).json({ data: items, total: items.length });
-  } catch (err) {
+  } catch (error) {
     return res.status(500).json({ error: 'Erro ao buscar DLQ.' });
   }
 });
@@ -260,7 +260,7 @@ router.post('/dlq/:id/retry', authenticate, authorize('tenants', 'update'), asyn
   try {
     await retryDLQItem(req.params.id);
     return res.status(200).json({ message: 'Item reinserido na fila com sucesso.' });
-  } catch (err) {
+  } catch (error) {
     return res.status(500).json({ error: 'Erro ao reprocessar item.' });
   }
 });

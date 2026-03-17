@@ -218,3 +218,44 @@ router.delete('/:id', authenticate, authorize('users', 'delete'), async (req, re
 });
 
 export default router;
+
+/**
+ * POST /api/v1/root/users
+ * Cria usuário em qualquer tenant (usado para criar o TENANT_ADMIN inicial)
+ * Role: ROOT apenas
+ */
+router.post('/', authenticate, authorize('users', 'create'), async (req, res) => {
+  const { company_id, name, email, password, role = 'TENANT_ADMIN' } = req.body;
+
+  if (!company_id || !name || !email || !password) {
+    return res.status(400).json({ error: 'company_id, name, email e password são obrigatórios.' });
+  }
+
+  if (password.length < 8) {
+    return res.status(400).json({ error: 'Senha deve ter no mínimo 8 caracteres.' });
+  }
+
+  const allowed = ['TENANT_ADMIN', 'MEDICO', 'RECEPCIONISTA', 'FINANCEIRO', 'DPO_EXTERNO'];
+  if (!allowed.includes(role)) {
+    return res.status(400).json({ error: `Role inválido. Use: ${allowed.join(', ')}` });
+  }
+
+  try {
+    const hash = await bcrypt.hash(password, 10);
+
+    const { rows } = await authPool.query(
+      `INSERT INTO users (id, company_id, name, email, password_hash, role, status)
+       VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, 'ACTIVE')
+       RETURNING id, name, email, role, status, company_id, created_at`,
+      [company_id, name, email, hash, role]
+    );
+
+    return res.status(201).json({ data: rows[0] });
+  } catch (err) {
+    if (err.code === '23505') {
+      return res.status(409).json({ error: 'E-mail já cadastrado neste tenant.' });
+    }
+    console.error('[root/users] POST error:', err.message);
+    return res.status(500).json({ error: 'Erro ao criar usuário.' });
+  }
+});

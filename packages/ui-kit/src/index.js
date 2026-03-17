@@ -8,13 +8,13 @@
  */
 
 // Componentes
-export { Button }              from '../components/Button.jsx';
-export { Badge }               from '../components/Badge.jsx';
+export { Button } from '../components/Button.jsx';
+export { Badge } from '../components/Badge.jsx';
 export { Card, CardHeader, CardBody } from '../components/Card.jsx';
-export { Input }               from '../components/Input.jsx';
+export { Input } from '../components/Input.jsx';
 
 // Tokens JS (para uso em lógica, não em CSS)
 export { primitive, semantic, brandMap } from '../tokens/colors.js';
-export { spacing, space }      from '../tokens/spacing.js';
+export { spacing, space } from '../tokens/spacing.js';
 export { fontFamily, fontSize, fontWeight } from '../tokens/typography.js';
-export { radii }               from '../tokens/radii.js';
+export { radii } from '../tokens/radii.js';

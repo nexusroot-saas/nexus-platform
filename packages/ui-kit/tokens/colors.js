@@ -109,46 +109,46 @@ export const primitive = {
   // Status
   success: '#16a34a',
   warning: '#d97706',
-  danger:  '#dc2626',
-  info:    '#0284c7',
+  danger: '#dc2626',
+  info: '#0284c7',
 };
 
 // ── Tokens Semânticos (mapeamento para variáveis CSS) ─────────────────────
 // Estes são os nomes que os componentes devem usar — NUNCA valores primitivos
 export const semantic = {
   // Marca — muda por submarca
-  brandPrimary:    'var(--color-brand-primary)',
-  brandHover:      'var(--color-brand-hover)',
-  brandSoft:       'var(--color-brand-soft)',
-  brandText:       'var(--color-brand-text)',
+  brandPrimary: 'var(--color-brand-primary)',
+  brandHover: 'var(--color-brand-hover)',
+  brandSoft: 'var(--color-brand-soft)',
+  brandText: 'var(--color-brand-text)',
 
   // Superfícies
-  surfaceBg:       'var(--color-surface-bg)',
-  surfaceCard:     'var(--color-surface-card)',
-  surfaceAlt:      'var(--color-surface-alt)',
+  surfaceBg: 'var(--color-surface-bg)',
+  surfaceCard: 'var(--color-surface-card)',
+  surfaceAlt: 'var(--color-surface-alt)',
 
   // Texto
-  textPrimary:     'var(--color-text-primary)',
-  textSecondary:   'var(--color-text-secondary)',
-  textTertiary:    'var(--color-text-tertiary)',
+  textPrimary: 'var(--color-text-primary)',
+  textSecondary: 'var(--color-text-secondary)',
+  textTertiary: 'var(--color-text-tertiary)',
 
   // Bordas
-  borderDefault:   'var(--color-border-default)',
-  borderStrong:    'var(--color-border-strong)',
+  borderDefault: 'var(--color-border-default)',
+  borderStrong: 'var(--color-border-strong)',
 
   // Ações — sempre as mesmas independente de tema
-  actionSuccess:   'var(--color-action-success)',
-  actionDanger:    'var(--color-action-danger)',
-  actionWarning:   'var(--color-action-warning)',
-  actionInfo:      'var(--color-action-info)',
+  actionSuccess: 'var(--color-action-success)',
+  actionDanger: 'var(--color-action-danger)',
+  actionWarning: 'var(--color-action-warning)',
+  actionInfo: 'var(--color-action-info)',
 };
 
 // ── Mapa de submarca → cor primitiva base ─────────────────────────────────
 export const brandMap = {
-  MED:    { primary: primitive.blue[500],   hover: primitive.blue[600],   soft: primitive.blue[50] },
-  CLIN:   { primary: primitive.pink[500],   hover: primitive.pink[600],   soft: primitive.pink[50] },
-  ODONTO: { primary: primitive.green[500],  hover: primitive.green[600],  soft: primitive.green[50] },
-  LAB:    { primary: primitive.purple[500], hover: primitive.purple[600], soft: primitive.purple[50] },
-  IMG:    { primary: primitive.orange[500], hover: primitive.orange[600], soft: primitive.orange[50] },
-  ADM:    { primary: primitive.teal[500],   hover: primitive.teal[600],   soft: primitive.teal[50] },
+  MED: { primary: primitive.blue[500], hover: primitive.blue[600], soft: primitive.blue[50] },
+  CLIN: { primary: primitive.pink[500], hover: primitive.pink[600], soft: primitive.pink[50] },
+  ODONTO: { primary: primitive.green[500], hover: primitive.green[600], soft: primitive.green[50] },
+  LAB: { primary: primitive.purple[500], hover: primitive.purple[600], soft: primitive.purple[50] },
+  IMG: { primary: primitive.orange[500], hover: primitive.orange[600], soft: primitive.orange[50] },
+  ADM: { primary: primitive.teal[500], hover: primitive.teal[600], soft: primitive.teal[50] },
 };

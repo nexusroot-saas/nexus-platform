@@ -84,12 +84,12 @@ function normalizeWhatsAppEvent(body, provider) {
           events.push({
             message_id: msg.id,
             event_type: classifyMessage(msg),
-            from:       msg.from,
-            to:         value.metadata?.phone_number_id,
-            timestamp:  msg.timestamp,
-            text:       msg.text,
+            from: msg.from,
+            to: value.metadata?.phone_number_id,
+            timestamp: msg.timestamp,
+            text: msg.text,
             interactive: msg.interactive,
-            raw:        msg,
+            raw: msg,
           });
         }
 
@@ -98,10 +98,10 @@ function normalizeWhatsAppEvent(body, provider) {
           events.push({
             message_id: `status-${status.id}-${status.status}`,
             event_type: `message.status.${status.status}`,
-            from:       status.recipient_id,
-            to:         value.metadata?.phone_number_id,
-            timestamp:  status.timestamp,
-            raw:        status,
+            from: status.recipient_id,
+            to: value.metadata?.phone_number_id,
+            timestamp: status.timestamp,
+            raw: status,
           });
         }
       }
@@ -111,10 +111,10 @@ function normalizeWhatsAppEvent(body, provider) {
     events.push({
       message_id: body.MessageSid || `twilio-${Date.now()}`,
       event_type: 'message.received',
-      from:       body.From?.replace('whatsapp:', ''),
-      to:         body.To?.replace('whatsapp:', ''),
-      text:       { body: body.Body },
-      raw:        body,
+      from: body.From?.replace('whatsapp:', ''),
+      to: body.To?.replace('whatsapp:', ''),
+      text: { body: body.Body },
+      raw: body,
     });
   }
 
@@ -129,7 +129,8 @@ function classifyMessage(msg) {
   if (msg.interactive) {
     const reply = msg.interactive?.button_reply?.id || msg.interactive?.list_reply?.id || '';
     if (reply.includes('consent_sign') || reply.includes('tcle_aceitar')) return 'consent.signed';
-    if (reply.includes('appt_confirm') || reply.includes('consulta_confirmar')) return 'appointment.confirmed';
+    if (reply.includes('appt_confirm') || reply.includes('consulta_confirmar'))
+      return 'appointment.confirmed';
   }
   // Texto simples — pode ser resposta a template
   if (msg.text?.body) {
@@ -143,8 +144,8 @@ function classifyMessage(msg) {
 // ── GET /api/v1/webhooks/whatsapp ────────────────────────────────────────
 // Verificação de webhook exigida pela Meta ao registrar o endpoint
 router.get('/whatsapp', (req, res) => {
-  const mode      = req.query['hub.mode'];
-  const token     = req.query['hub.verify_token'];
+  const mode = req.query['hub.mode'];
+  const token = req.query['hub.verify_token'];
   const challenge = req.query['hub.challenge'];
 
   const expectedToken = process.env.WHATSAPP_WEBHOOK_SECRET || 'nexus-webhook-dev';
@@ -161,11 +162,11 @@ router.get('/whatsapp', (req, res) => {
 // ── POST /api/v1/webhooks/whatsapp ───────────────────────────────────────
 // Receptor principal — ACK < 200ms + enfileirar para processamento assíncrono
 router.post('/whatsapp', async (req, res) => {
-  const startTime  = Date.now();
-  const signature  = req.headers['x-hub-signature-256'] || req.headers['x-twilio-signature'];
-  const rawBody    = JSON.stringify(req.body);
-  const provider   = req.headers['x-twilio-signature'] ? 'twilio' : 'meta';
-  const secret     = process.env.WHATSAPP_WEBHOOK_SECRET || 'nexus-webhook-dev';
+  const startTime = Date.now();
+  const signature = req.headers['x-hub-signature-256'] || req.headers['x-twilio-signature'];
+  const rawBody = JSON.stringify(req.body);
+  const provider = req.headers['x-twilio-signature'] ? 'twilio' : 'meta';
+  const secret = process.env.WHATSAPP_WEBHOOK_SECRET || 'nexus-webhook-dev';
 
   // ── 1. Validar assinatura HMAC (pular em dev se secret não configurado) ──
   if (process.env.NODE_ENV === 'production') {
@@ -191,7 +192,7 @@ router.post('/whatsapp', async (req, res) => {
           message_id: event.message_id,
           event_type: event.event_type,
           provider,
-          payload:    event,
+          payload: event,
           company_id,
         });
       }
@@ -210,28 +211,28 @@ router.get('/stats', authenticate, authorize('tenants', 'read'), async (_req, re
   try {
     const stats = await getQueueStats();
 
-    const total    = Number(stats.received_last_hour) || 0;
-    const success  = Number(stats.done_last_hour) || 0;
+    const total = Number(stats.received_last_hour) || 0;
+    const success = Number(stats.done_last_hour) || 0;
     const successRate = total > 0 ? ((success / total) * 100).toFixed(1) : '100.0';
 
     return res.status(200).json({
       data: {
         queue: {
-          pending:    Number(stats.pending),
+          pending: Number(stats.pending),
           processing: Number(stats.processing),
-          done:       Number(stats.done),
-          failed:     Number(stats.failed),
-          dlq:        Number(stats.dlq),
+          done: Number(stats.done),
+          failed: Number(stats.failed),
+          dlq: Number(stats.dlq),
         },
         last_hour: {
-          received:     total,
-          processed:    success,
+          received: total,
+          processed: success,
           success_rate: `${successRate}%`,
         },
         sla: {
-          consent_signed:        '< 30 segundos (P0)',
+          consent_signed: '< 30 segundos (P0)',
           appointment_confirmed: '< 2 minutos (P1)',
-          message_received:      '< 1 hora (P2)',
+          message_received: '< 1 hora (P2)',
         },
         dlq_alert: Number(stats.dlq) > 10,
       },

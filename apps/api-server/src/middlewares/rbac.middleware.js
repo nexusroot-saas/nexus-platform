@@ -7,7 +7,7 @@ const PERMISSIONS = {
   // ... outros recursos existentes
   documenttemplates: {
     read: ['TENANTADMIN', 'MEDICO', 'RECEPCIONISTA'],
-    update: ['TENANTADMIN']
+    update: ['TENANTADMIN'],
   },
   ROOT: {
     patients: ['read', 'create', 'update'],

@@ -10,8 +10,10 @@ const html = `
 </body>
 </html>`;
 
-renderPdf(html).then(({ buffer, sha256 }) => {
-  console.log('PDF gerado:', buffer.length, 'bytes');
-  console.log('SHA-256:', sha256);
-  process.exit(0);
-}).catch(console.error);
+renderPdf(html)
+  .then(({ buffer, sha256 }) => {
+    console.log('PDF gerado:', buffer.length, 'bytes');
+    console.log('SHA-256:', sha256);
+    process.exit(0);
+  })
+  .catch(console.error);

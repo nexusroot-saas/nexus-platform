@@ -4,42 +4,42 @@
  */
 
 export const fontFamily = {
-  sans:  "'DM Sans', system-ui, sans-serif",
-  mono:  "'DM Mono', 'Courier New', monospace",
+  sans: "'DM Sans', system-ui, sans-serif",
+  mono: "'DM Mono', 'Courier New', monospace",
   serif: "'Georgia', serif",
 };
 
 export const fontSize = {
-  xs:   '12px',  // legendas, labels de campo
-  sm:   '13px',  // texto secundário, badges
-  base: '14px',  // corpo padrão
-  md:   '15px',  // texto de destaque
-  lg:   '16px',  // subtítulos
-  xl:   '18px',  // títulos de seção
+  xs: '12px', // legendas, labels de campo
+  sm: '13px', // texto secundário, badges
+  base: '14px', // corpo padrão
+  md: '15px', // texto de destaque
+  lg: '16px', // subtítulos
+  xl: '18px', // títulos de seção
   '2xl': '20px', // títulos de página
   '3xl': '24px', // métricas / stat cards
   '4xl': '32px', // hero / valores grandes
 };
 
 export const fontWeight = {
-  light:   300,
+  light: 300,
   regular: 400,
-  medium:  500,
+  medium: 500,
   semibold: 600,
 };
 
 export const lineHeight = {
-  tight:   1.2,
-  snug:    1.4,
-  normal:  1.6,
+  tight: 1.2,
+  snug: 1.4,
+  normal: 1.6,
   relaxed: 1.75,
 };
 
 export const letterSpacing = {
-  tight:  '-0.5px',
+  tight: '-0.5px',
   normal: '0px',
-  wide:   '0.04em',
-  wider:  '0.08em',
+  wide: '0.04em',
+  wider: '0.08em',
   widest: '0.12em',
 };
 

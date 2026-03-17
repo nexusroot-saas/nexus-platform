@@ -13,12 +13,12 @@
  */
 
 const PROVIDER = process.env.WHATSAPP_BSP_PROVIDER || 'meta';
-const META_TOKEN     = process.env.WHATSAPP_API_KEY;
-const META_PHONE_ID  = process.env.WHATSAPP_PHONE_NUMBER_ID;
-const META_API_URL   = `https://graph.facebook.com/v19.0/${META_PHONE_ID}/messages`;
-const TWILIO_SID     = process.env.TWILIO_ACCOUNT_SID;
-const TWILIO_TOKEN   = process.env.TWILIO_AUTH_TOKEN;
-const TWILIO_FROM    = process.env.TWILIO_WHATSAPP_FROM;
+const META_TOKEN = process.env.WHATSAPP_API_KEY;
+const META_PHONE_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
+const META_API_URL = `https://graph.facebook.com/v19.0/${META_PHONE_ID}/messages`;
+const TWILIO_SID = process.env.TWILIO_ACCOUNT_SID;
+const TWILIO_TOKEN = process.env.TWILIO_AUTH_TOKEN;
+const TWILIO_FROM = process.env.TWILIO_WHATSAPP_FROM;
 
 // ── Utilitários ──────────────────────────────────────────────────────────
 
@@ -29,15 +29,18 @@ function sanitizePhone(phone) {
 
 async function metaSend(payload) {
   if (!META_TOKEN || !META_PHONE_ID) {
-    console.log('[WHATSAPP] Meta não configurado — simulando envio:', JSON.stringify(payload).slice(0, 120));
+    console.log(
+      '[WHATSAPP] Meta não configurado — simulando envio:',
+      JSON.stringify(payload).slice(0, 120)
+    );
     return { messageId: `sim-${Date.now()}`, provider: 'meta-simulated' };
   }
 
   const res = await fetch(META_API_URL, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${META_TOKEN}`,
-      'Content-Type':  'application/json',
+      Authorization: `Bearer ${META_TOKEN}`,
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify(payload),
   });
@@ -58,17 +61,20 @@ async function twilioSend(to, body) {
   }
 
   const auth = Buffer.from(`${TWILIO_SID}:${TWILIO_TOKEN}`).toString('base64');
-  const url  = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_SID}/Messages.json`;
+  const url = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_SID}/Messages.json`;
 
   const form = new URLSearchParams({
     From: `whatsapp:${TWILIO_FROM}`,
-    To:   `whatsapp:+${sanitizePhone(to)}`,
+    To: `whatsapp:+${sanitizePhone(to)}`,
     Body: body,
   });
 
   const res = await fetch(url, {
     method: 'POST',
-    headers: { 'Authorization': `Basic ${auth}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+    headers: {
+      Authorization: `Basic ${auth}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
     body: form.toString(),
   });
 
@@ -143,12 +149,23 @@ export async function sendConsentTerm({ to, patientName, consentId, termVersion,
  * Enviar lembrete de consulta
  * SLA P1 — confirmação de agendamento (< 2 minutos)
  */
-export async function sendAppointmentReminder({ to, patientName, appointmentId, dateTime, professionalName, clinicName }) {
+export async function sendAppointmentReminder({
+  to,
+  patientName,
+  appointmentId,
+  dateTime,
+  professionalName,
+  clinicName,
+}) {
   const phone = sanitizePhone(to);
   if (!phone) throw new Error('Número de telefone inválido.');
 
   const dateFormatted = new Date(dateTime).toLocaleString('pt-BR', {
-    weekday: 'long', day: '2-digit', month: 'long', hour: '2-digit', minute: '2-digit',
+    weekday: 'long',
+    day: '2-digit',
+    month: 'long',
+    hour: '2-digit',
+    minute: '2-digit',
   });
 
   if (PROVIDER === 'twilio') {
@@ -179,7 +196,7 @@ export async function sendAppointmentReminder({ to, patientName, appointmentId, 
       action: {
         buttons: [
           { type: 'reply', reply: { id: `appt_confirm_${appointmentId}`, title: '✅ Confirmar' } },
-          { type: 'reply', reply: { id: `appt_cancel_${appointmentId}`,  title: '❌ Cancelar' } },
+          { type: 'reply', reply: { id: `appt_cancel_${appointmentId}`, title: '❌ Cancelar' } },
         ],
       },
     },

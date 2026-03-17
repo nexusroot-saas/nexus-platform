@@ -3,8 +3,11 @@ import { useState, useCallback } from 'react';
 const API = (import.meta.env.VITE_API_URL || '') + '/api/v1';
 
 function parseJwt(token) {
-  try { return JSON.parse(atob(token.split('.')[1])); }
-  catch { return null; }
+  try {
+    return JSON.parse(atob(token.split('.')[1]));
+  } catch {
+    return null;
+  }
 }
 
 function isExpired(token) {
@@ -25,13 +28,17 @@ export function useRootAuth() {
   const save = (at, rt) => {
     sessionStorage.setItem('root_at', at);
     sessionStorage.setItem('root_rt', rt);
-    setAccessToken(at); setRefreshToken(rt); setUser(parseJwt(at));
+    setAccessToken(at);
+    setRefreshToken(rt);
+    setUser(parseJwt(at));
   };
 
   const clear = () => {
     sessionStorage.removeItem('root_at');
     sessionStorage.removeItem('root_rt');
-    setAccessToken(null); setRefreshToken(null); setUser(null);
+    setAccessToken(null);
+    setRefreshToken(null);
+    setUser(null);
   };
 
   const login = useCallback(async (email, password) => {
@@ -47,7 +54,9 @@ export function useRootAuth() {
     // Garante que apenas ROOT pode acessar este painel
     const payload = parseJwt(data.access_token);
     if (payload?.role !== 'ROOT') {
-      throw new Error('Acesso restrito. Este painel é exclusivo para administradores da plataforma.');
+      throw new Error(
+        'Acesso restrito. Este painel é exclusivo para administradores da plataforma.'
+      );
     }
 
     save(data.access_token, data.refresh_token);
@@ -67,14 +76,20 @@ export function useRootAuth() {
 
   const getToken = useCallback(async () => {
     if (accessToken && !isExpired(accessToken)) return accessToken;
-    if (!refreshToken) { clear(); return null; }
+    if (!refreshToken) {
+      clear();
+      return null;
+    }
 
     const res = await fetch(`${API}/auth/refresh`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refresh_token: refreshToken }),
     });
-    if (!res.ok) { clear(); return null; }
+    if (!res.ok) {
+      clear();
+      return null;
+    }
 
     const data = await res.json();
     save(data.access_token, data.refresh_token);

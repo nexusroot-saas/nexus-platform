@@ -14,11 +14,26 @@ router.get('/', authenticate, authorize('audit_logs', 'read'), async (req, res) 
   try {
     const filters = ['al.company_id = $1'];
     const params = [companyId];
-    if (user_id) { params.push(user_id); filters.push(`al.user_id = $${params.length}`); }
-    if (table_name) { params.push(table_name); filters.push(`al.table_name = $${params.length}`); }
-    if (action) { params.push(action.toUpperCase()); filters.push(`al.action = $${params.length}`); }
-    if (from) { params.push(from); filters.push(`al.created_at >= $${params.length}::timestamptz`); }
-    if (to) { params.push(to); filters.push(`al.created_at <= $${params.length}::timestamptz`); }
+    if (user_id) {
+      params.push(user_id);
+      filters.push(`al.user_id = $${params.length}`);
+    }
+    if (table_name) {
+      params.push(table_name);
+      filters.push(`al.table_name = $${params.length}`);
+    }
+    if (action) {
+      params.push(action.toUpperCase());
+      filters.push(`al.action = $${params.length}`);
+    }
+    if (from) {
+      params.push(from);
+      filters.push(`al.created_at >= $${params.length}::timestamptz`);
+    }
+    if (to) {
+      params.push(to);
+      filters.push(`al.created_at <= $${params.length}::timestamptz`);
+    }
     params.push(safeLimit, offset);
     const result = await client.query(
       `SELECT al.id, al.user_id, u.name AS user_name,
@@ -35,7 +50,9 @@ router.get('/', authenticate, authorize('audit_logs', 'read'), async (req, res) 
   } catch (err) {
     console.error('[audit-logs] GET error:', err.message);
     return res.status(500).json({ error: 'Erro ao buscar logs de auditoria.' });
-  } finally { client.release(); }
+  } finally {
+    client.release();
+  }
 });
 
 router.get('/:record_id', authenticate, authorize('audit_logs', 'read'), async (req, res) => {
@@ -52,7 +69,9 @@ router.get('/:record_id', authenticate, authorize('audit_logs', 'read'), async (
   } catch (err) {
     console.error('[audit-logs] GET/:record_id error:', err.message);
     return res.status(500).json({ error: 'Erro ao buscar histórico.' });
-  } finally { client.release(); }
+  } finally {
+    client.release();
+  }
 });
 
 export default router;

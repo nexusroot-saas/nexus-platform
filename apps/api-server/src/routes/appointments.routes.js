@@ -12,9 +12,18 @@ router.get('/', authenticate, authorize('appointments', 'read'), async (req, res
   try {
     const filters = ['a.company_id = $1', 'a.deleted_at IS NULL'];
     const params = [companyId];
-    if (date) { params.push(date); filters.push(`a.scheduled_date::date = $${params.length}`); }
-    if (patient_id) { params.push(patient_id); filters.push(`a.patient_id = $${params.length}`); }
-    if (professional_id) { params.push(professional_id); filters.push(`a.professional_id = $${params.length}`); }
+    if (date) {
+      params.push(date);
+      filters.push(`a.scheduled_date::date = $${params.length}`);
+    }
+    if (patient_id) {
+      params.push(patient_id);
+      filters.push(`a.patient_id = $${params.length}`);
+    }
+    if (professional_id) {
+      params.push(professional_id);
+      filters.push(`a.professional_id = $${params.length}`);
+    }
     const result = await client.query(
       `SELECT a.id, a.patient_id, p.name AS patient_name,
               a.professional_id, a.scheduled_date, a.duration_minutes,
@@ -29,7 +38,9 @@ router.get('/', authenticate, authorize('appointments', 'read'), async (req, res
   } catch (err) {
     console.error('[appointments] GET error:', err.message);
     return res.status(500).json({ error: 'Erro ao buscar agendamentos.' });
-  } finally { client.release(); }
+  } finally {
+    client.release();
+  }
 });
 
 router.post('/', authenticate, authorize('appointments', 'create'), async (req, res) => {
@@ -44,13 +55,23 @@ router.post('/', authenticate, authorize('appointments', 'create'), async (req, 
          (id, company_id, patient_id, professional_id, scheduled_date, duration_minutes, status, notes, created_by)
        VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, 'AGENDADO', $6, $7)
        RETURNING id, patient_id, professional_id, scheduled_date, duration_minutes, status, notes, created_at`,
-      [req.user.company_id, patient_id, professional_id || null, scheduled_date, duration_minutes || 30, notes || null, req.user.sub]
+      [
+        req.user.company_id,
+        patient_id,
+        professional_id || null,
+        scheduled_date,
+        duration_minutes || 30,
+        notes || null,
+        req.user.sub,
+      ]
     );
     return res.status(201).json({ data: result.rows[0] });
   } catch (err) {
     console.error('[appointments] POST error:', err.message);
     return res.status(500).json({ error: 'Erro ao criar agendamento.' });
-  } finally { client.release(); }
+  } finally {
+    client.release();
+  }
 });
 
 export default router;

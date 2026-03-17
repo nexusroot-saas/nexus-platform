@@ -5,7 +5,15 @@ import { authPool } from '../config/db.js';
 
 const router = Router();
 
-const ALLOWED_MODULES = ['NEXUSMED', 'NEXUSCLIN', 'NEXUSODONTO', 'NEXUSLAB', 'NEXUSIMG', 'NEXUSLEGAL', 'NEXUSADM'];
+const ALLOWED_MODULES = [
+  'NEXUSMED',
+  'NEXUSCLIN',
+  'NEXUSODONTO',
+  'NEXUSLAB',
+  'NEXUSIMG',
+  'NEXUSLEGAL',
+  'NEXUSADM',
+];
 
 /**
  * GET /api/v1/root/tenants
@@ -37,7 +45,14 @@ router.get('/tenants', authenticate, authorize('tenants', 'read'), async (_req, 
  * Role: ROOT apenas
  */
 router.post('/tenants', authenticate, authorize('tenants', 'create'), async (req, res) => {
-  const { cnpj, nome_fantasia, razao_social, tenant_type, active_modules = [], trial_days = 30 } = req.body;
+  const {
+    cnpj,
+    nome_fantasia,
+    razao_social,
+    tenant_type,
+    active_modules = [],
+    trial_days = 30,
+  } = req.body;
 
   if (!nome_fantasia || !tenant_type) {
     return res.status(400).json({ error: 'nome_fantasia e tenant_type são obrigatórios.' });
@@ -55,7 +70,14 @@ router.post('/tenants', authenticate, authorize('tenants', 'create'), async (req
       `INSERT INTO companies (id, cnpj, nome_fantasia, razao_social, tenant_type, active_modules, status, trial_expires_at)
        VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, 'TRIAL', $6)
        RETURNING id, cnpj, nome_fantasia, tenant_type, status, active_modules, trial_expires_at, created_at`,
-      [cnpj || null, nome_fantasia, razao_social || null, tenant_type, active_modules, trialExpiresAt]
+      [
+        cnpj || null,
+        nome_fantasia,
+        razao_social || null,
+        tenant_type,
+        active_modules,
+        trialExpiresAt,
+      ]
     );
     return res.status(201).json({ data: rows[0] });
   } catch (err) {
@@ -68,59 +90,69 @@ router.post('/tenants', authenticate, authorize('tenants', 'create'), async (req
  * PATCH /api/v1/root/tenants/:id/status
  * Altera status do tenant: ACTIVE | BLOCKED | TRIAL | CANCELLED
  */
-router.patch('/tenants/:id/status', authenticate, authorize('tenants', 'update'), async (req, res) => {
-  const { status } = req.body;
-  const allowed = ['ACTIVE', 'BLOCKED', 'TRIAL', 'CANCELLED'];
+router.patch(
+  '/tenants/:id/status',
+  authenticate,
+  authorize('tenants', 'update'),
+  async (req, res) => {
+    const { status } = req.body;
+    const allowed = ['ACTIVE', 'BLOCKED', 'TRIAL', 'CANCELLED'];
 
-  if (!allowed.includes(status)) {
-    return res.status(400).json({ error: `Status inválido. Use: ${allowed.join(', ')}` });
-  }
+    if (!allowed.includes(status)) {
+      return res.status(400).json({ error: `Status inválido. Use: ${allowed.join(', ')}` });
+    }
 
-  try {
-    const { rows, rowCount } = await authPool.query(
-      `UPDATE companies SET status = $1, updated_at = NOW()
+    try {
+      const { rows, rowCount } = await authPool.query(
+        `UPDATE companies SET status = $1, updated_at = NOW()
        WHERE id = $2 AND deleted_at IS NULL
        RETURNING id, nome_fantasia, status, updated_at`,
-      [status, req.params.id]
-    );
-    if (rowCount === 0) return res.status(404).json({ error: 'Tenant não encontrado.' });
-    return res.status(200).json({ data: rows[0] });
-  } catch (err) {
-    console.error('[root/tenants] PATCH status error:', err.message);
-    return res.status(500).json({ error: 'Erro ao atualizar status.' });
+        [status, req.params.id]
+      );
+      if (rowCount === 0) return res.status(404).json({ error: 'Tenant não encontrado.' });
+      return res.status(200).json({ data: rows[0] });
+    } catch (err) {
+      console.error('[root/tenants] PATCH status error:', err.message);
+      return res.status(500).json({ error: 'Erro ao atualizar status.' });
+    }
   }
-});
+);
 
 /**
  * PATCH /api/v1/root/tenants/:id/modules
  * Atualiza módulos ativos do tenant (licenciamento)
  */
-router.patch('/tenants/:id/modules', authenticate, authorize('tenants', 'update'), async (req, res) => {
-  const { active_modules } = req.body;
+router.patch(
+  '/tenants/:id/modules',
+  authenticate,
+  authorize('tenants', 'update'),
+  async (req, res) => {
+    const { active_modules } = req.body;
 
-  if (!Array.isArray(active_modules)) {
-    return res.status(400).json({ error: 'active_modules deve ser um array.' });
-  }
+    if (!Array.isArray(active_modules)) {
+      return res.status(400).json({ error: 'active_modules deve ser um array.' });
+    }
 
-  const invalid = active_modules.filter((m) => !ALLOWED_MODULES.includes(m));
-  if (invalid.length > 0) {
-    return res.status(400).json({ error: `Módulos inválidos: ${invalid.join(', ')}` });
-  }
+    const invalid = active_modules.filter((m) => !ALLOWED_MODULES.includes(m));
+    if (invalid.length > 0) {
+      return res.status(400).json({ error: `Módulos inválidos: ${invalid.join(', ')}` });
+    }
 
-  try {
-    const { rows, rowCount } = await authPool.query(
-      `UPDATE companies SET active_modules = $1, updated_at = NOW()
+    try {
+      const { rows, rowCount } = await authPool.query(
+        `UPDATE companies SET active_modules = $1, updated_at = NOW()
        WHERE id = $2 AND deleted_at IS NULL
        RETURNING id, nome_fantasia, active_modules, updated_at`,
-      [active_modules, req.params.id]
-    );
-    if (rowCount === 0) return res.status(404).json({ error: 'Tenant não encontrado.' });
-    return res.status(200).json({ data: rows[0] });
-  } catch (err) {
-    console.error('[root/tenants] PATCH modules error:', err.message);
-    return res.status(500).json({ error: 'Erro ao atualizar módulos.' });
+        [active_modules, req.params.id]
+      );
+      if (rowCount === 0) return res.status(404).json({ error: 'Tenant não encontrado.' });
+      return res.status(200).json({ data: rows[0] });
+    } catch (err) {
+      console.error('[root/tenants] PATCH modules error:', err.message);
+      return res.status(500).json({ error: 'Erro ao atualizar módulos.' });
+    }
   }
-});
+);
 
 /**
  * DELETE /api/v1/root/tenants/:id

@@ -21,7 +21,14 @@ export default [
         process: 'readonly',
         console: 'readonly',
         URL: 'readonly',
+        URLSearchParams: 'readonly',
         Buffer: 'readonly',
+        fetch: 'readonly',
+        setImmediate: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly',
       },
     },
   },
@@ -62,7 +69,12 @@ export default [
 
   // ── Web portal — globals do browser ──────────────────────────────
   {
-    files: ['apps/web-portal/**/*.js', 'apps/web-portal/**/*.jsx'],
+    files: [
+      'apps/web-portal/**/*.js',
+      'apps/web-portal/**/*.jsx',
+      'apps/nexus-root/**/*.js',
+      'apps/nexus-root/**/*.jsx',
+    ],
     languageOptions: {
       globals: {
         window: 'readonly',

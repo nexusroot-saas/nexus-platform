@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { sendConsentTerm } from './whatsapp.service.js';
 import { pool, withTenantContext } from '../config/db.js';
 
 // Texto canônico do termo por versão — em produção viria do banco

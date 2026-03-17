@@ -10,7 +10,15 @@ router.get('/', authenticate, authorize('audit_logs', 'read'), async (req, res) 
   const companyId = req.user.company_id;
   const safeLimit = Math.min(Number(limit), 200);
   const offset = (Number(page) - 1) * safeLimit;
-  const client = await pool.connect();
+
+  let client;
+  try {
+    client = await pool.connect();
+  } catch (err) {
+    console.error('[audit-logs] DB connection error:', err.message);
+    return res.status(500).json({ error: 'Erro ao conectar ao banco de dados.' });
+  }
+
   try {
     const filters = ['al.company_id = $1'];
     const params = [companyId];
@@ -51,12 +59,21 @@ router.get('/', authenticate, authorize('audit_logs', 'read'), async (req, res) 
     console.error('[audit-logs] GET error:', err.message);
     return res.status(500).json({ error: 'Erro ao buscar logs de auditoria.' });
   } finally {
-    client.release();
+    if (client) {
+      client.release();
+    }
   }
 });
 
 router.get('/:record_id', authenticate, authorize('audit_logs', 'read'), async (req, res) => {
-  const client = await pool.connect();
+  let client;
+  try {
+    client = await pool.connect();
+  } catch (err) {
+    console.error('[audit-logs] DB connection error:', err.message);
+    return res.status(500).json({ error: 'Erro ao conectar ao banco de dados.' });
+  }
+
   try {
     const result = await client.query(
       `SELECT id, user_id, action, table_name, old_values, new_values, ip_address, user_agent, created_at
@@ -70,7 +87,9 @@ router.get('/:record_id', authenticate, authorize('audit_logs', 'read'), async (
     console.error('[audit-logs] GET/:record_id error:', err.message);
     return res.status(500).json({ error: 'Erro ao buscar histórico.' });
   } finally {
-    client.release();
+    if (client) {
+      client.release();
+    }
   }
 });
 

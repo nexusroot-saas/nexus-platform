@@ -82,9 +82,11 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ error: 'Erro interno do servidor.' });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 api-server rodando na porta ${PORT}`);
-  startQueueProcessor(5000);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`🚀 api-server rodando na porta ${PORT}`);
+    startQueueProcessor(5000);
+  });
+}
 
 export default app;

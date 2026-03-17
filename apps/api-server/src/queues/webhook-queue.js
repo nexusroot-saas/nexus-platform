@@ -69,8 +69,7 @@ export async function enqueueWebhook({
 
     console.log(`[QUEUE] Enfileirado: ${message_id} (${event_type})`);
   } catch (err) {
-    console.error('[QUEUE] Erro ao enfileirar:', err.message);
-    throw err;
+    console.error('[QUEUE] Erro ao enfileirar:', err);
   }
 }
 
@@ -102,7 +101,7 @@ export async function processQueue() {
       await processJob(job);
     }
   } catch (err) {
-    console.error('[QUEUE] Erro no processador:', err.message);
+    console.error('[QUEUE] Erro no processador:', err);
   }
 }
 

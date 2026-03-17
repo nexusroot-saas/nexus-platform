@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useRootAuth } from '../hooks/useRootAuth.js';
 
 const Icon = {
@@ -29,6 +29,12 @@ const Icon = {
 
 export default function RootLayout({ title, children }) {
   const { user, logout } = useRootAuth();
+  const navigate = useNavigate();
+
+  async function handleLogout() {
+    await logout();
+    navigate('/login', { replace: true });
+  }
 
   return (
     <div className="root-layout">
@@ -61,7 +67,7 @@ export default function RootLayout({ title, children }) {
             <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>{user?.name || 'ROOT'}</div>
             <div style={{ fontSize: 11, color: 'var(--text-3)' }}>Administrador da plataforma</div>
           </div>
-          <button className="root-nav-item" onClick={logout}>
+          <button className="root-nav-item" onClick={handleLogout}>
             <Icon.Logout /> Sair
           </button>
         </div>

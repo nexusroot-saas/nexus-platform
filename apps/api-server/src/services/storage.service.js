@@ -12,22 +12,22 @@
 import { createHash } from 'crypto';
 import { pool } from '../config/db.js';
 
-const SUPABASE_URL          = process.env.SUPABASE_URL;
-const SUPABASE_SERVICE_KEY  = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const SIGNED_URL_EXPIRES_IN = 300; // 5 minutos conforme Seção 15.4
 
 const BUCKETS = {
-  PUBLIC_ASSETS:  'public-assets',
-  CLINICAL_DOCS:  'clinical-docs',
-  LEGAL_VAULT:    'legal-vault',
+  PUBLIC_ASSETS: 'public-assets',
+  CLINICAL_DOCS: 'clinical-docs',
+  LEGAL_VAULT: 'legal-vault',
 };
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 
 function storageHeaders() {
   return {
-    'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
-    'apikey':        SUPABASE_SERVICE_KEY,
+    Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+    apikey: SUPABASE_SERVICE_KEY,
   };
 }
 
@@ -82,9 +82,16 @@ export async function uploadFile({
   if (!isConfigured()) {
     console.log(`[STORAGE] Simulando upload: ${bucket}/${objectPath} (${fileBuffer.length} bytes)`);
     return await saveDocumentMetadata({
-      companyId, bucket, objectPath, originalName: fileName,
-      mimeType, fileSize: fileBuffer.length, sha256Hash,
-      entityType, entityId, uploadedBy,
+      companyId,
+      bucket,
+      objectPath,
+      originalName: fileName,
+      mimeType,
+      fileSize: fileBuffer.length,
+      sha256Hash,
+      entityType,
+      entityId,
+      uploadedBy,
     });
   }
 
@@ -107,15 +114,30 @@ export async function uploadFile({
 
   // Persistir metadados e hash no banco
   return await saveDocumentMetadata({
-    companyId, bucket, objectPath, originalName: fileName,
-    mimeType, fileSize: fileBuffer.length, sha256Hash,
-    entityType, entityId, uploadedBy,
+    companyId,
+    bucket,
+    objectPath,
+    originalName: fileName,
+    mimeType,
+    fileSize: fileBuffer.length,
+    sha256Hash,
+    entityType,
+    entityId,
+    uploadedBy,
   });
 }
 
 async function saveDocumentMetadata({
-  companyId, bucket, objectPath, originalName,
-  mimeType, fileSize, sha256Hash, entityType, entityId, uploadedBy,
+  companyId,
+  bucket,
+  objectPath,
+  originalName,
+  mimeType,
+  fileSize,
+  sha256Hash,
+  entityType,
+  entityId,
+  uploadedBy,
 }) {
   const { rows } = await pool.query(
     `INSERT INTO public.storage_documents
@@ -123,8 +145,18 @@ async function saveDocumentMetadata({
         file_size, sha256_hash, entity_type, entity_id, uploaded_by)
      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
      RETURNING *`,
-    [companyId, bucket, objectPath, originalName, mimeType,
-     fileSize, sha256Hash, entityType || null, entityId || null, uploadedBy || null]
+    [
+      companyId,
+      bucket,
+      objectPath,
+      originalName,
+      mimeType,
+      fileSize,
+      sha256Hash,
+      entityType || null,
+      entityId || null,
+      uploadedBy || null,
+    ]
   );
   return rows[0];
 }
@@ -137,7 +169,10 @@ async function saveDocumentMetadata({
  */
 export async function getSignedUrl(bucket, objectPath) {
   if (!isConfigured()) {
-    return { signedUrl: `http://localhost:3001/storage-sim/${bucket}/${objectPath}`, expiresIn: SIGNED_URL_EXPIRES_IN };
+    return {
+      signedUrl: `http://localhost:3001/storage-sim/${bucket}/${objectPath}`,
+      expiresIn: SIGNED_URL_EXPIRES_IN,
+    };
   }
 
   const url = `${SUPABASE_URL}/storage/v1/object/sign/${bucket}/${objectPath}`;
@@ -202,9 +237,9 @@ export async function verifyDocumentIntegrity(documentId, companyId) {
 
   if (!res.ok) throw new Error(`Arquivo não encontrado no storage: ${doc.object_path}`);
 
-  const buffer    = Buffer.from(await res.arrayBuffer());
+  const buffer = Buffer.from(await res.arrayBuffer());
   const currentHash = computeHash(buffer);
-  const valid     = currentHash === doc.sha256_hash;
+  const valid = currentHash === doc.sha256_hash;
 
   if (!valid) {
     // Alerta de violação de integridade — registrar no audit_log
@@ -213,26 +248,44 @@ export async function verifyDocumentIntegrity(documentId, companyId) {
        VALUES (gen_random_uuid(), $1, 'INTEGRITY_VIOLATION', 'storage_documents', $2, 'system')`,
       [companyId, documentId]
     );
-    console.error(`[STORAGE] ⛔ VIOLAÇÃO DE INTEGRIDADE: documento ${documentId} — hash divergente!`);
+    console.error(
+      `[STORAGE] ⛔ VIOLAÇÃO DE INTEGRIDADE: documento ${documentId} — hash divergente!`
+    );
   }
 
   return {
     valid,
-    stored_hash:  doc.sha256_hash,
+    stored_hash: doc.sha256_hash,
     current_hash: currentHash,
-    document:     doc,
+    document: doc,
   };
 }
 
 // ── Listagem de documentos ────────────────────────────────────────────────
 
-export async function listDocuments({ companyId, bucket, entityType, entityId, page = 1, limit = 20 }) {
+export async function listDocuments({
+  companyId,
+  bucket,
+  entityType,
+  entityId,
+  page = 1,
+  limit = 20,
+}) {
   const filters = ['sd.company_id = $1', 'sd.deleted_at IS NULL'];
-  const params  = [companyId];
+  const params = [companyId];
 
-  if (bucket)     { params.push(bucket);     filters.push(`sd.bucket = $${params.length}`); }
-  if (entityType) { params.push(entityType); filters.push(`sd.entity_type = $${params.length}`); }
-  if (entityId)   { params.push(entityId);   filters.push(`sd.entity_id = $${params.length}`); }
+  if (bucket) {
+    params.push(bucket);
+    filters.push(`sd.bucket = $${params.length}`);
+  }
+  if (entityType) {
+    params.push(entityType);
+    filters.push(`sd.entity_type = $${params.length}`);
+  }
+  if (entityId) {
+    params.push(entityId);
+    filters.push(`sd.entity_id = $${params.length}`);
+  }
 
   const offset = (page - 1) * limit;
   params.push(limit, offset);
@@ -263,7 +316,9 @@ export async function deleteDocument(documentId, companyId) {
 
   if (rows.length === 0) throw new Error('Documento não encontrado.');
   if (rows[0].bucket === 'legal-vault') {
-    throw new Error('Documentos do legal-vault são imutáveis e não podem ser excluídos (CFM/LGPD).');
+    throw new Error(
+      'Documentos do legal-vault são imutáveis e não podem ser excluídos (CFM/LGPD).'
+    );
   }
 
   await pool.query(

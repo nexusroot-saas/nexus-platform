@@ -4,10 +4,10 @@
 
 export const radii = {
   none: '0px',
-  sm:   '4px',
-  md:   '8px',   // padrão para botões e inputs
-  lg:   '12px',  // cards
-  xl:   '16px',  // modais
+  sm: '4px',
+  md: '8px', // padrão para botões e inputs
+  lg: '12px', // cards
+  xl: '16px', // modais
   '2xl': '24px', // painéis grandes
   full: '9999px', // badges, avatares, pills
 };

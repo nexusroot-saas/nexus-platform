@@ -36,21 +36,27 @@ CREATE INDEX IF NOT EXISTS idx_webhook_queue_status ON public.webhook_queue(stat
 
 // ── Backoff schedule (conforme Seção 14.2) ──────────────────────────────
 const BACKOFF_MS = [
-  5_000,       // 1ª tentativa: 5 segundos
-  30_000,      // 2ª tentativa: 30 segundos
-  300_000,     // 3ª tentativa: 5 minutos
-  900_000,     // 4ª tentativa: 15 minutos
-  1_800_000,   // 5ª tentativa: 30 minutos
-  3_600_000,   // 6ª tentativa: 1 hora
-  7_200_000,   // 7ª tentativa: 2 horas
-  14_400_000,  // 8ª tentativa: 4 horas
-  28_800_000,  // 9ª tentativa: 8 horas
-  86_400_000,  // 10ª tentativa: 24 horas → DLQ após esta
+  5_000, // 1ª tentativa: 5 segundos
+  30_000, // 2ª tentativa: 30 segundos
+  300_000, // 3ª tentativa: 5 minutos
+  900_000, // 4ª tentativa: 15 minutos
+  1_800_000, // 5ª tentativa: 30 minutos
+  3_600_000, // 6ª tentativa: 1 hora
+  7_200_000, // 7ª tentativa: 2 horas
+  14_400_000, // 8ª tentativa: 4 horas
+  28_800_000, // 9ª tentativa: 8 horas
+  86_400_000, // 10ª tentativa: 24 horas → DLQ após esta
 ];
 const MAX_ATTEMPTS = BACKOFF_MS.length;
 
 // ── Enfileirar mensagem ──────────────────────────────────────────────────
-export async function enqueueWebhook({ message_id, event_type, provider = 'whatsapp', payload, company_id }) {
+export async function enqueueWebhook({
+  message_id,
+  event_type,
+  provider = 'whatsapp',
+  payload,
+  company_id,
+}) {
   try {
     await pool.query(ENSURE_TABLE_SQL);
 
@@ -109,7 +115,9 @@ async function processJob(job) {
       [attempts, job.id]
     );
 
-    console.log(`[QUEUE] ✓ Processado: ${job.message_id} (${job.event_type}) — tentativa ${attempts}`);
+    console.log(
+      `[QUEUE] ✓ Processado: ${job.message_id} (${job.event_type}) — tentativa ${attempts}`
+    );
   } catch (err) {
     console.error(`[QUEUE] ✗ Falha: ${job.message_id} — tentativa ${attempts} — ${err.message}`);
 
@@ -125,7 +133,7 @@ async function processJob(job) {
     } else {
       // Reagendar com backoff
       const delayMs = BACKOFF_MS[attempts - 1] || BACKOFF_MS[BACKOFF_MS.length - 1];
-      const nextAt  = new Date(Date.now() + delayMs);
+      const nextAt = new Date(Date.now() + delayMs);
 
       await pool.query(
         `UPDATE public.webhook_queue
@@ -192,7 +200,9 @@ async function handleAppointmentConfirmed(payload, company_id) {
 // P2 — Mensagem genérica recebida (SLA < 1 hora)
 async function handleMessageReceived(payload, company_id) {
   // Logar para auditoria — integração com atendimento humano futura
-  console.log(`[QUEUE] P2 message.received: from=${payload.from} body="${payload.text?.body?.slice(0, 50)}"`);
+  console.log(
+    `[QUEUE] P2 message.received: from=${payload.from} body="${payload.text?.body?.slice(0, 50)}"`
+  );
 }
 
 // ── DLQ: estatísticas para o NexusRoot ──────────────────────────────────

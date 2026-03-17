@@ -28,12 +28,12 @@ router.get('/', authenticate, authorize('storage', 'read'), async (req, res) => 
 
   try {
     const docs = await listDocuments({
-      companyId:  req.user.company_id,
-      bucket:     bucket || null,
+      companyId: req.user.company_id,
+      bucket: bucket || null,
       entityType: entity_type || null,
-      entityId:   entity_id || null,
-      page:       Number(page),
-      limit:      Math.min(Number(limit), 100),
+      entityId: entity_id || null,
+      page: Number(page),
+      limit: Math.min(Number(limit), 100),
     });
     return res.status(200).json({ data: docs, total: docs.length });
   } catch (err) {
@@ -55,34 +55,46 @@ router.post('/upload', authenticate, authorize('storage', 'create'), async (req,
   const { bucket, entity_type, entity_id, file, file_name, mime_type } = req.body;
 
   if (!bucket || !file || !file_name || !mime_type) {
-    return res.status(400).json({ error: 'bucket, file (base64), file_name e mime_type são obrigatórios.' });
+    return res
+      .status(400)
+      .json({ error: 'bucket, file (base64), file_name e mime_type são obrigatórios.' });
   }
 
   if (!Object.values(BUCKETS).includes(bucket)) {
-    return res.status(400).json({ error: `Bucket inválido. Use: ${Object.values(BUCKETS).join(', ')}` });
+    return res
+      .status(400)
+      .json({ error: `Bucket inválido. Use: ${Object.values(BUCKETS).join(', ')}` });
   }
 
   // Apenas TENANT_ADMIN pode fazer upload no legal-vault
   if (bucket === BUCKETS.LEGAL_VAULT && !['TENANT_ADMIN', 'ROOT'].includes(req.user.role)) {
-    return res.status(403).json({ error: 'Apenas administradores podem enviar para o legal-vault.' });
+    return res
+      .status(403)
+      .json({ error: 'Apenas administradores podem enviar para o legal-vault.' });
   }
 
   try {
     const fileBuffer = Buffer.from(file, 'base64');
 
     // Limite de tamanho por bucket
-    const limits = { 'public-assets': 5_242_880, 'clinical-docs': 52_428_800, 'legal-vault': 10_485_760 };
+    const limits = {
+      'public-assets': 5_242_880,
+      'clinical-docs': 52_428_800,
+      'legal-vault': 10_485_760,
+    };
     if (fileBuffer.length > limits[bucket]) {
-      return res.status(413).json({ error: `Arquivo excede o limite de ${limits[bucket] / 1_048_576}MB para o bucket ${bucket}.` });
+      return res.status(413).json({
+        error: `Arquivo excede o limite de ${limits[bucket] / 1_048_576}MB para o bucket ${bucket}.`,
+      });
     }
 
     const doc = await uploadFile({
       bucket,
-      companyId:  req.user.company_id,
+      companyId: req.user.company_id,
       entityType: entity_type || null,
-      entityId:   entity_id   || null,
-      fileName:   file_name,
-      mimeType:   mime_type,
+      entityId: entity_id || null,
+      fileName: file_name,
+      mimeType: mime_type,
       fileBuffer,
       uploadedBy: req.user.sub,
     });
@@ -101,13 +113,13 @@ router.get('/:id/url', authenticate, authorize('storage', 'read'), async (req, r
     const doc = await getDocumentWithUrl(req.params.id, req.user.company_id);
     return res.status(200).json({
       data: {
-        id:            doc.id,
-        signed_url:    doc.signed_url,
-        expires_in:    doc.signed_url_expires_in,
-        expires_at:    new Date(Date.now() + doc.signed_url_expires_in * 1000).toISOString(),
+        id: doc.id,
+        signed_url: doc.signed_url,
+        expires_in: doc.signed_url_expires_in,
+        expires_at: new Date(Date.now() + doc.signed_url_expires_in * 1000).toISOString(),
         original_name: doc.original_name,
-        mime_type:     doc.mime_type,
-        bucket:        doc.bucket,
+        mime_type: doc.mime_type,
+        bucket: doc.bucket,
       },
     });
   } catch (err) {
@@ -123,11 +135,11 @@ router.get('/:id/verify', authenticate, authorize('storage', 'read'), async (req
     const result = await verifyDocumentIntegrity(req.params.id, req.user.company_id);
     return res.status(200).json({
       data: {
-        valid:        result.valid,
-        stored_hash:  result.stored_hash,
+        valid: result.valid,
+        stored_hash: result.stored_hash,
         current_hash: result.current_hash,
-        document:     result.document,
-        message:      result.valid
+        document: result.document,
+        message: result.valid
           ? '✓ Integridade verificada — documento íntegro.'
           : '⛔ ALERTA: hash divergente — possível violação de integridade!',
       },
@@ -144,8 +156,11 @@ router.delete('/:id', authenticate, authorize('storage', 'delete'), async (req, 
     await deleteDocument(req.params.id, req.user.company_id);
     return res.status(200).json({ message: 'Documento removido com sucesso.' });
   } catch (err) {
-    const status = err.message.includes('imutável') ? 403
-                 : err.message.includes('não encontrado') ? 404 : 500;
+    const status = err.message.includes('imutável')
+      ? 403
+      : err.message.includes('não encontrado')
+        ? 404
+        : 500;
     return res.status(status).json({ error: err.message });
   }
 });

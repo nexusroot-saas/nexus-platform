@@ -4,14 +4,14 @@ Plataforma SaaS de Gestão em Saúde & Compliance — Monorepo
 
 ## Stack
 
-| Camada | Tecnologia |
-|--------|------------|
-| Backend | Node.js 20 + Express 4 |
-| Banco | PostgreSQL 16 via Supabase (RLS nativo) |
-| Auth | JWT (15min) + Refresh Token rotativo (7d) |
-| Segurança | JWT → RBAC → RLS (3 camadas) |
-| Frontend | React 18 + Vite *(em breve)* |
-| Infra | Render (API) + Vercel (Web) |
+| Camada    | Tecnologia                                |
+| --------- | ----------------------------------------- |
+| Backend   | Node.js 20 + Express 4                    |
+| Banco     | PostgreSQL 16 via Supabase (RLS nativo)   |
+| Auth      | JWT (15min) + Refresh Token rotativo (7d) |
+| Segurança | JWT → RBAC → RLS (3 camadas)              |
+| Frontend  | React 18 + Vite _(em breve)_              |
+| Infra     | Render (API) + Vercel (Web)               |
 
 ## Estrutura
 
@@ -63,17 +63,17 @@ npm run dev:api
 
 ## Rotas disponíveis
 
-| Método | Rota | Auth | Descrição |
-|--------|------|------|-----------|
-| GET | `/health/live` | Pública | Liveness check |
-| GET | `/health/ready` | Pública | Readiness check |
-| POST | `/api/v1/auth/login` | Pública | Login → JWT + refresh token |
-| POST | `/api/v1/auth/refresh` | Pública | Renova access token |
-| POST | `/api/v1/auth/logout` | Pública | Invalida refresh token |
-| GET | `/api/v1/patients` | JWT + patients:read | Lista pacientes do tenant |
-| POST | `/api/v1/patients` | JWT + patients:create | Cria paciente |
-| GET | `/api/v1/appointments` | JWT + appointments:read | Lista agendamentos |
-| POST | `/api/v1/appointments` | JWT + appointments:create | Cria agendamento |
+| Método | Rota                   | Auth                      | Descrição                   |
+| ------ | ---------------------- | ------------------------- | --------------------------- |
+| GET    | `/health/live`         | Pública                   | Liveness check              |
+| GET    | `/health/ready`        | Pública                   | Readiness check             |
+| POST   | `/api/v1/auth/login`   | Pública                   | Login → JWT + refresh token |
+| POST   | `/api/v1/auth/refresh` | Pública                   | Renova access token         |
+| POST   | `/api/v1/auth/logout`  | Pública                   | Invalida refresh token      |
+| GET    | `/api/v1/patients`     | JWT + patients:read       | Lista pacientes do tenant   |
+| POST   | `/api/v1/patients`     | JWT + patients:create     | Cria paciente               |
+| GET    | `/api/v1/appointments` | JWT + appointments:read   | Lista agendamentos          |
+| POST   | `/api/v1/appointments` | JWT + appointments:create | Cria agendamento            |
 
 ## Segurança — 3 camadas
 
@@ -114,7 +114,7 @@ npm run test --workspace=packages/database
 
 ## Credenciais de teste (seed)
 
-| Tenant | Email | Senha | Role |
-|--------|-------|-------|------|
+| Tenant              | Email                | Senha    | Role         |
+| ------------------- | -------------------- | -------- | ------------ |
 | Clínica Saúde Total | admin@saudetotal.com | senha123 | TENANT_ADMIN |
-| OdontoVita | admin@odontovita.com | senha123 | TENANT_ADMIN |
+| OdontoVita          | admin@odontovita.com | senha123 | TENANT_ADMIN |

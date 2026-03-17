@@ -40,7 +40,15 @@ router.post('/', authenticate, authorize('patients', 'create'), async (req, res)
         `INSERT INTO patients (id, company_id, name, email, phone, date_of_birth, cpf, status, created_by)
          VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, 'ATIVO', $7)
          RETURNING id, name, email, phone, date_of_birth, cpf, status, created_at`,
-        [companyId, name, email || null, phone || null, date_of_birth || null, cpf || null, req.user.sub]
+        [
+          companyId,
+          name,
+          email || null,
+          phone || null,
+          date_of_birth || null,
+          cpf || null,
+          req.user.sub,
+        ]
       )
     );
     return res.status(201).json({ data: result.rows[0] });

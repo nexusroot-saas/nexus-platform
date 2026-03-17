@@ -10,6 +10,9 @@
 
 import crypto from 'crypto';
 
+export * from './pdf.service.js';
+export * from './template-tags.js';
+
 export const TERM_VERSIONS = {
   '1.0': {
     label: 'TCLE Padrão v1.0',

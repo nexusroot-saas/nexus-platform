@@ -21,10 +21,10 @@ router.get('/', authenticate, authorize('patients', 'read'), async (req, res) =>
     // ✅ RLS filtra AUTOMATICAMENTE por companyid
     const result = await client.query(`
         SELECT 
-          id, name, cpf, email, phone, 
+          id, full_name AS name, cpf, email, phone, 
           birthdate, createdat, updatedat
         FROM patients 
-        ORDER BY name ASC
+        ORDER BY full_name ASC
       `);
 
     // ✅ Log de auditoria
@@ -56,6 +56,53 @@ router.get('/', authenticate, authorize('patients', 'read'), async (req, res) =>
   }
 });
 
+// POST /api/v1/patients - Cria paciente (tenant isolado)
+router.post('/', authenticate, authorize('patients', 'create'), async (req, res) => {
+  const { name, cpf, email, phone, birthdate } = req.body;
+
+  if (!name || typeof name !== 'string' || !name.trim()) {
+    return res.status(400).json({ error: 'O campo name é obrigatório.' });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('SET app.currentcompanyid = $1', [req.user.companyid]);
+    const result = await client.query(
+      `INSERT INTO patients (id, company_id, full_name, cpf, email, phone, birth_date)
+       VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6)
+       RETURNING id, full_name AS name, cpf, email, phone, birth_date AS birthdate, created_at AS createdat, updated_at AS updatedat`,
+      [
+        req.user.companyid,
+        name.trim(),
+        cpf || null,
+        email || null,
+        phone || null,
+        birthdate || null,
+      ]
+    );
+
+    await log(
+      {
+        ...auditContextFromReq(req),
+        action: 'CREATE',
+        tablename: 'patients',
+        recordid: result.rows[0].id,
+      },
+      client
+    );
+
+    return res.status(201).json({
+      success: true,
+      data: result.rows[0],
+    });
+  } catch (error) {
+    console.error('Patient create error:', error);
+    return res.status(500).json({ error: 'Erro ao criar paciente.' });
+  } finally {
+    client.release();
+  }
+});
+
 // GET /api/v1/patients/:id - Paciente específico
 router.get('/:id', authenticate, authorize('patients', 'read'), async (req, res) => {
   const client = await pool.connect();
@@ -64,7 +111,7 @@ router.get('/:id', authenticate, authorize('patients', 'read'), async (req, res)
     await client.query('SET app.currentcompanyid = $1', [req.user.companyid]);
 
     const result = await client.query(
-      'SELECT id, name, cpf, email, phone, birthdate, createdat, updatedat FROM patients WHERE id = $1',
+      'SELECT id, full_name AS name, cpf, email, phone, birth_date AS birthdate, created_at AS createdat, updated_at AS updatedat FROM patients WHERE id = $1',
       [req.params.id]
     );
 

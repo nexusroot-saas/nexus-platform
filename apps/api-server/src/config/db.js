@@ -23,7 +23,7 @@ export const authPool = new Pool({
 // Em transaction pooler, o filtro explícito por company_id nas queries é o fallback
 export async function withTenantContext(client, companyId, fn) {
   try {
-    await client.query(`SET LOCAL app.current_company_id = '${companyId}'`);
+    await client.query(`SET LOCAL app.currentcompanyid = '${companyId}'`);
   } catch {
     // Transaction pooler não suporta SET LOCAL — ignora, usa filtro explícito
   }

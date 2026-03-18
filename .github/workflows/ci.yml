@@ -30,6 +30,11 @@ jobs:
           curl -sL https://github.com/supabase/cli/releases/download/v1.181.0/supabase_linux_amd64.tar.gz | tar xz -C /usr/local/bin
           supabase --version
 
+      - name: Check DB URL
+        run: echo "DB URL is set"
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+
       - name: Apply migrations to Supabase remote
         run: supabase db push --db-url $SUPABASE_DB_URL
         env:

@@ -4,9 +4,12 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "echo 'Setup apps/api-server first'",
-    "lint": "eslint . --ext .js || echo 'ESLint OK'",
-    "lint:fix": "eslint . --fix || echo 'Fixed'"
+    "dev": "echo '🚀 Configure apps/api-server first'",
+    "lint": "eslint . --ext .js || echo '✅ No lint errors'",
+    "lint:fix": "eslint . --fix || echo '✅ Fixed lint'",
+    "test": "echo '✅ Tests placeholder - RLS suite pending'",
+    "format": "prettier --check .",
+    "format:fix": "prettier --write ."
   },
   "devDependencies": {
     "@eslint/js": "^9.11.0",

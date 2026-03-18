@@ -28,17 +28,27 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
-      - run: npm install
-      - run: npm run lint
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Install Supabase CLI
+        run: |
+          curl -sL https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz | tar xz
+          sudo mv supabase /usr/local/bin/
 
       - name: Apply migrations
-        #run: psql -h localhost -U nexus -d nexus_dev -f supabase/migrations/20260313000001_initial_schema.sql
         run: supabase db push --db-url $SUPABASE_DB_URL
         env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
           PGPASSWORD: nexus_dev_pass
 
       - name: Create app user
@@ -55,4 +65,5 @@ jobs:
         env:
           PGPASSWORD: nexus_dev_pass
 
-      - run: npm run test
+      - name: Run tests
+        run: npm run test

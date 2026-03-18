@@ -42,7 +42,7 @@ jobs:
 
       # Instalação do Supabase CLI via action oficial
       - name: Setup Supabase CLI
-        uses: supabase/setup-cli@v1
+        uses: supabase-community/setup-cli@v1
         with:
           version: v1.181.0
 

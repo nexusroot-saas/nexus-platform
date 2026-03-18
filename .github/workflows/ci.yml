@@ -1,36 +1,21 @@
-name: CI/CD Nexus Platform
-
-on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main]
-
-jobs:
-  ci:
-    runs-on: ubuntu-latest
+- name: Start Test Postgres
+  run: |
+    docker-compose -f docker-compose.test.yml up -d postgres-test
+    sleep 10  # Aguardar boot
     
-    steps:
-    - uses: actions/checkout@v4
+- name: Run Migrations Test DB
+  run: |
+    npm run migrate:test  # psql -f migrations/*.sql
     
-    - uses: actions/setup-node@v4
-      with:
-        node-version: 20
-        cache: npm
-        
-    - run: npm ci
+- name: Test RLS
+  run: npm run test
+  env:
+    DB_HOST: localhost
+    DB_PORT: 5433
+    DB_NAME: nexus_test
+    DB_USER: postgres
+    DB_PASSWORD: test123
     
-    - run: npm run lint
-    
-    - name: Test RLS Local
-      run: npm run test
-      
-    - name: Push Migrations Supabase
-      if: github.ref == 'refs/heads/main'  # Só main
-      run: |
-        supabase db push \
-          --db-url ${{ secrets.SUPABASE_DB_URL }} \
-          --include-roles \
-          --include-seed
-      env:
-        SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+- name: Cleanup
+  if: always()
+  run: docker-compose -f docker-compose.test.yml down

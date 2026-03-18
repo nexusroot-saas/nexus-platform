@@ -1,44 +1,36 @@
-name: CI
+name: CI/CD Nexus Platform
 
 on:
   push:
     branches: [main, develop]
   pull_request:
-    branches: [main, develop]
+    branches: [main]
 
 jobs:
   ci:
-    name: Lint, Test & RLS
     runs-on: ubuntu-latest
-
+    
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Install Supabase CLI
-        run: |
-          curl -sL https://github.com/supabase/cli/releases/download/v1.181.0/supabase_linux_amd64.tar.gz | tar xz -C /usr/local/bin
-          supabase --version
-
-      - name: Check DB URL
-        run: echo "DB URL is set"
-        env:
-          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-
-      - name: Apply migrations to Supabase remote
-        run: supabase db push --db-url $SUPABASE_DB_URL
-        env:
-          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-
-      - name: Run tests
-        run: npm run test
+    - uses: actions/checkout@v4
+    
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: npm
+        
+    - run: npm ci
+    
+    - run: npm run lint
+    
+    - name: Test RLS Local
+      run: npm run test
+      
+    - name: Push Migrations Supabase
+      if: github.ref == 'refs/heads/main'  # Só main
+      run: |
+        supabase db push \
+          --db-url ${{ secrets.SUPABASE_DB_URL }} \
+          --include-roles \
+          --include-seed
+      env:
+        SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}

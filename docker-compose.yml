@@ -1,28 +1,26 @@
-version: '3.9'
-
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: nexus_db
-    restart: unless-stopped
+    container_name: nexus-platform-postgres-1
     environment:
       POSTGRES_USER: nexus
-      POSTGRES_PASSWORD: nexus_dev_pass
+      POSTGRES_PASSWORD: nexusdevpass
       POSTGRES_DB: nexus_dev
     ports:
-      - "5432:5432"   # Porta padrão, mais simples para CI e testes
+      - "5432:5432"
     volumes:
-      - nexus_pgdata:/var/lib/postgresql/data
-      # Seeds aplicados na primeira inicialização do volume
-      - ./packages/database/seeds/dev-seed.sql:/docker-entrypoint-initdb.d/02_seed.sql
-      - ./packages/database/seeds/create-app-user.sql:/docker-entrypoint-initdb.d/03_app_user.sql
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexus -d nexus_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine
-    container_name: nexus_redis
-    restart: unless-stopped
+    container_name: nexus-platform-redis-1
     ports:
       - "6379:6379"
 
 volumes:
-  nexus_pgdata:
+  postgres_data:

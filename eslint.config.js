@@ -1,14 +1,17 @@
 import js from '@eslint/js';
-import prettier from 'eslint-config-prettier';
-import pluginPrettier from 'eslint-plugin-prettier';
+import prettierConfig from 'eslint-config-prettier';
+import prettierPlugin from 'eslint-plugin-prettier';
 
 export default [
+  // Configurações recomendadas
   js.configs.recommended,
-  prettier,
+  prettierConfig, // Desabilita regras conflitantes com Prettier
 
-  // ── Configuração base para todo o monorepo ─────────────────────────
+  // ── Configuração base monorepo ──────────────────────────────
   {
-    plugins: { prettier: pluginPrettier },
+    plugins: {
+      prettier: prettierPlugin
+    },
     rules: {
       'prettier/prettier': 'error',
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
@@ -20,8 +23,6 @@ export default [
       globals: {
         process: 'readonly',
         console: 'readonly',
-        URL: 'readonly',
-        URLSearchParams: 'readonly',
         Buffer: 'readonly',
         fetch: 'readonly',
         setImmediate: 'readonly',
@@ -33,7 +34,7 @@ export default [
     },
   },
 
-  // ── Arquivos .cjs — CommonJS (babel.config.cjs, jest.config.cjs) ───
+  // ── Arquivos .cjs (CommonJS) ───────────────────────────────
   {
     files: ['**/*.cjs'],
     languageOptions: {
@@ -43,13 +44,11 @@ export default [
         require: 'readonly',
         __dirname: 'readonly',
         __filename: 'readonly',
-        process: 'readonly',
-        console: 'readonly',
       },
     },
   },
 
-  // ── Arquivos de teste — globals do Jest ───────────────────────────
+  // ── Testes Jest ────────────────────────────────────────────
   {
     files: ['**/__tests__/**/*.js', '**/*.test.js'],
     languageOptions: {
@@ -67,7 +66,7 @@ export default [
     },
   },
 
-  // ── Web portal — globals do browser ──────────────────────────────
+  // ── Frontend (browser globals) ────────────────────────────
   {
     files: [
       'apps/web-portal/**/*.js',
@@ -81,28 +80,21 @@ export default [
         document: 'readonly',
         localStorage: 'readonly',
         sessionStorage: 'readonly',
-        fetch: 'readonly',
-        atob: 'readonly',
-        btoa: 'readonly',
-        console: 'readonly',
-        URL: 'readonly',
-        URLSearchParams: 'readonly',
-        setTimeout: 'readonly',
-        clearTimeout: 'readonly',
-        setInterval: 'readonly',
-        clearInterval: 'readonly',
         alert: 'readonly',
         confirm: 'readonly',
-        matchMedia: 'readonly',
         navigator: 'readonly',
-        history: 'readonly',
-        location: 'readonly',
       },
     },
   },
 
-  // ── Ignorar ───────────────────────────────────────────────────────
+  // ── Ignores ────────────────────────────────────────────────
   {
-    ignores: ['node_modules/**', 'dist/**', 'build/**', '.vite/**', '**/*.jsx'],
+    ignores: [
+      'node_modules/**',
+      'dist/**', 
+      'build/**',
+      '.vite/**',
+      '**/*.min.js'
+    ],
   },
 ];

@@ -1,0 +1,41 @@
+{
+  "name": "nexus-platform",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=apps/api-server",
+    "dev:api": "npm run dev --workspace=apps/api-server",
+    "dev:all": "npm run dev --workspaces --if-present",
+    
+    "db:sync": "npx supabase db query < supabase/roles.sql && npx supabase db query < supabase/grant_nexusapp.sql && npx supabase db pull",
+    "db:reset": "npx supabase db reset",
+    "db:migrate": "npx supabase migration up",
+    
+    "test": "NODE_ENV=test jest",
+    "test:ci": "jest --ci --coverage --colors=false",
+    
+    "lint": "eslint . --ext .js,.cjs",
+    "lint:fix": "eslint . --ext .js,.cjs --fix",
+    "format": "prettier --write \"**/*.{js,cjs,json,md,yml,yaml}\"",
+    "format:check": "prettier --check \"**/*.{js,cjs,json,md,yml,yaml}\""
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.11.0",
+    "eslint": "^9.11.1",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "prettier": "^3.3.3",
+    "jest": "^29.7.0",
+    "@jest/globals": "^29.7.0",
+    "pg": "^8.13.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}

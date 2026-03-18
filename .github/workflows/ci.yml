@@ -40,7 +40,6 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      # Instalação do Supabase CLI via binário oficial
       - name: Install Supabase CLI
         run: |
           curl -sL https://github.com/supabase/cli/releases/download/v1.181.0/supabase_linux_amd64.tar.gz | tar xz -C /usr/local/bin
@@ -50,7 +49,6 @@ jobs:
         run: supabase db push --db-url $SUPABASE_DB_URL
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-          PGPASSWORD: nexus_dev_pass
 
       - name: Create app user
         run: |

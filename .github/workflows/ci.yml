@@ -40,11 +40,10 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      # Instalação do Supabase CLI via action oficial
-      - name: Setup Supabase CLI
-        uses: supabase-community/setup-cli@v1
-        with:
-          version: v1.181.0
+      # Instalação do Supabase CLI via binário oficial
+      - name: Install Supabase CLI
+        run: |
+          curl -sL https://github.com/supabase/cli/releases/download/v1.181.0/supabase_linux_amd64.tar.gz | tar xz -C /usr/local/bin
 
       - name: Apply migrations
         run: supabase db push --db-url $SUPABASE_DB_URL

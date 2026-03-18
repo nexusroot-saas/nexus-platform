@@ -36,7 +36,8 @@ jobs:
       - run: npm run lint
 
       - name: Apply migrations
-        run: psql -h localhost -U nexus -d nexus_dev -f supabase/migrations/20260313000001_initial_schema.sql
+        #run: psql -h localhost -U nexus -d nexus_dev -f supabase/migrations/20260313000001_initial_schema.sql
+        run: supabase db push --db-url $SUPABASE_DB_URL
         env:
           PGPASSWORD: nexus_dev_pass
 

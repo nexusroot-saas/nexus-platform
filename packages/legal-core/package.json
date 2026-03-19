@@ -1,0 +1,14 @@
+{
+  "name": "@nexus/legal-core",
+  "version": "1.0.0",
+  "description": "Core LGPD e PDF generation para Nexus",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "puppeteer": "^22.0.0"
+  },
+  "devDependencies": {}
+}

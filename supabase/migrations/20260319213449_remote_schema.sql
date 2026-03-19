@@ -10,6 +10,8 @@ alter table "public"."users" drop constraint "users_role_check";
 
 alter table "public"."users" drop constraint "users_status_check";
 
+alter table "public"."webhook_queue" drop constraint "webhook_queue_status_check";
+
 alter table "public"."appointments" add constraint "appointments_status_check" CHECK (((status)::text = ANY ((ARRAY['SCHEDULED'::character varying, 'CONFIRMED'::character varying, 'IN_PROGRESS'::character varying, 'COMPLETED'::character varying, 'CANCELLED'::character varying, 'NO_SHOW'::character varying])::text[]))) not valid;
 
 alter table "public"."appointments" validate constraint "appointments_status_check";
@@ -33,5 +35,9 @@ alter table "public"."users" validate constraint "users_role_check";
 alter table "public"."users" add constraint "users_status_check" CHECK (((status)::text = ANY ((ARRAY['PENDING'::character varying, 'ACTIVE'::character varying, 'BLOCKED'::character varying])::text[]))) not valid;
 
 alter table "public"."users" validate constraint "users_status_check";
+
+alter table "public"."webhook_queue" add constraint "webhook_queue_status_check" CHECK (((status)::text = ANY ((ARRAY['pending'::character varying, 'completed'::character varying, 'failed'::character varying])::text[]))) not valid;
+
+alter table "public"."webhook_queue" validate constraint "webhook_queue_status_check";
 
 

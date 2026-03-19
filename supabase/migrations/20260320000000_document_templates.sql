@@ -1,0 +1,1 @@
+-- Depende da migration anterior que cria companies

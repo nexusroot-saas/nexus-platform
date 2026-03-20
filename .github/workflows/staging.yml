@@ -1,14 +1,12 @@
-name: CI/CD Pipeline
+name: Staging Deploy
 
 on:
   push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
+    branches: [develop]
 
 jobs:
-  ci:
-    name: Lint, Test, Migrate, Build
+  staging:
+    name: Lint, Test, Migrate, Deploy Staging
     runs-on: ubuntu-latest
 
     services:
@@ -73,8 +71,7 @@ jobs:
       - name: Apply migrations (Test DB)
         run: npm run db:migrate
 
-      - name: Apply migrations to Supabase (main branch only)
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Deploy to Supabase Staging
         run: |
           supabase link --project-ref ${{ env.SUPABASE_PROJECT_REF }} --access-token ${{ env.SUPABASE_ACCESS_TOKEN }}
           supabase db push
@@ -82,10 +79,9 @@ jobs:
       - name: Build
         run: npm run build
 
-  deploy-render:
-    name: Trigger Render Deploy
-    needs: ci
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  deploy-render-staging:
+    name: Trigger Render Deploy (Staging)
+    needs: staging
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Render Deploy
@@ -93,4 +89,4 @@ jobs:
           curl -X POST \
             -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
             -H "Content-Type: application/json" \
-            https://api.render.com/v1/services/srv-xxxxx/deploys
+            https://api.render.com/v1/services/srv-yyyyy/deploys

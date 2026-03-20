@@ -1,14 +1,12 @@
-name: CI/CD Pipeline
+name: CI/CD Pipeline - Production
 
 on:
   push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
+    branches: [main]
 
 jobs:
-  ci:
-    name: Lint, Test, Migrate, Build
+  ci-prod:
+    name: Lint, Test, Build, Migrate (Production)
     runs-on: ubuntu-latest
 
     services:
@@ -17,7 +15,7 @@ jobs:
         env:
           POSTGRES_USER: nexus
           POSTGRES_PASSWORD: nexusdevpass
-          POSTGRES_DB: nexusdev
+          POSTGRES_DB: nexus_test
         ports:
           - 5432:5432
         options: >-
@@ -25,26 +23,12 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd="redis-cli ping"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
 
     env:
       NODE_ENV: test
-      PGUSER: nexus
-      PGPASSWORD: nexusdevpass
-      PGDATABASE: nexus_test
-      PGHOST: 127.0.0.1
-      PGPORT: 5432
-      DATABASE_URL: postgresql://nexus:nexusdevpass@127.0.0.1:5432/nexus_test
-      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      SUPABASE_PROJECT_REF: jvxjjezqevbbxsqxrofu
+      DATABASE_URL: postgresql://nexus:nexusdevpass@localhost:5432/nexus_test
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN_PROD }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF_PROD }}
 
     steps:
       - name: Checkout repository
@@ -59,33 +43,22 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Reset Test Database
-        run: npm run db:reset:test
-
       - name: Run CI script (lint, format, test, build)
-        run: npm run ci:test
+        run: npm run ci
 
       - name: Install Supabase CLI
         uses: supabase/setup-cli@v1
         with:
           version: latest
 
-      - name: Apply migrations (Test DB)
-        run: npm run db:migrate
-
-      - name: Apply migrations to Supabase (main branch only)
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Apply migrations to Supabase Production
         run: |
           supabase link --project-ref ${{ env.SUPABASE_PROJECT_REF }} --access-token ${{ env.SUPABASE_ACCESS_TOKEN }}
           supabase db push
 
-      - name: Build
-        run: npm run build
-
   deploy-render:
     name: Trigger Render Deploy
-    needs: ci
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: ci-prod
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Render Deploy

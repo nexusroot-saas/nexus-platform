@@ -1,182 +1,207 @@
-# Supabase CLI
+Supabase CLI
+Coverage Status (coveralls.io in Bing)  
+Bitbucket Pipelines (bitbucket.org in Bing)  
+https://gitlab.com/sweatybridge/setup-cli/-/pipelines
 
-[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=develop)](https://coveralls.io/github/supabase/cli?branch=develop) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
-](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
+Supabase é uma alternativa open source ao Firebase. Estamos construindo os recursos do Firebase usando ferramentas open source de nível empresarial.
 
-[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
+Este repositório contém toda a funcionalidade da Supabase CLI.
 
-This repository contains all the functionality for Supabase CLI.
+[x] Rodar Supabase localmente
 
-- [x] Running Supabase locally
-- [x] Managing database migrations
-- [x] Creating and deploying Supabase Functions
-- [x] Generating types directly from your database schema
-- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
+[x] Gerenciar migrações de banco de dados
 
-## Getting started
+[x] Criar e fazer deploy de Supabase Functions
 
-### Install the CLI
+[x] Gerar tipos diretamente do schema do banco
 
-Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
+[x] Fazer requisições autenticadas à Management API
 
-```bash
+🚀 Getting Started
+Instalação da CLI
+Disponível via NPM como dependência de desenvolvimento:
+
+bash
 npm i supabase --save-dev
-```
+Com Yarn 4, desabilite o experimental fetch:
 
-When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
-
-```
+bash
 NODE_OPTIONS=--no-experimental-fetch yarn add supabase
-```
+Nota  
+Para versões do Bun abaixo de v1.0.17, adicione supabase como trusted dependency antes de rodar bun add -D supabase.
 
-> **Note**
-> For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
-
+Plataformas
 <details>
-  <summary><b>macOS</b></summary>
+<summary><b>macOS</b></summary>
 
-Available via [Homebrew](https://brew.sh). To install:
+Via Homebrew:
 
-```sh
+sh
 brew install supabase/tap/supabase
-```
+Beta release:
 
-To install the beta release channel:
-
-```sh
+sh
 brew install supabase/tap/supabase-beta
 brew link --overwrite supabase-beta
-```
+Upgrade:
 
-To upgrade:
-
-```sh
+sh
 brew upgrade supabase
-```
-
 </details>
 
 <details>
-  <summary><b>Windows</b></summary>
+<summary><b>Windows</b></summary>
 
-Available via [Scoop](https://scoop.sh). To install:
+Via Scoop:
 
-```powershell
+powershell
 scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
 scoop install supabase
-```
+Upgrade:
 
-To upgrade:
-
-```powershell
+powershell
 scoop update supabase
-```
-
 </details>
 
 <details>
-  <summary><b>Linux</b></summary>
+<summary><b>Linux</b></summary>
 
-Available via [Homebrew](https://brew.sh) and Linux packages.
-
-#### via Homebrew
-
-To install:
-
-```sh
+via Homebrew
+sh
 brew install supabase/tap/supabase
-```
-
-To upgrade:
-
-```sh
 brew upgrade supabase
-```
+via Pacotes Linux
+Disponíveis em Releases. Baixe o pacote adequado (.apk, .deb, .rpm, .pkg.tar.zst) e instale:
 
-#### via Linux packages
-
-Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
-
-```sh
+sh
 sudo apk add --allow-untrusted <...>.apk
-```
-
-```sh
 sudo dpkg -i <...>.deb
-```
-
-```sh
 sudo rpm -i <...>.rpm
-```
-
-```sh
 sudo pacman -U <...>.pkg.tar.zst
-```
-
 </details>
 
 <details>
-  <summary><b>Other Platforms</b></summary>
+<summary><b>Outras plataformas</b></summary>
 
-You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
+Via Go modules:
 
-```sh
+sh
 go install github.com/supabase/cli@latest
-```
-
-Add a symlink to the binary in `$PATH` for easier access:
-
-```sh
 ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
-```
-
-This works on other non-standard Linux distros.
-
 </details>
 
 <details>
-  <summary><b>Community Maintained Packages</b></summary>
+<summary><b>Pacotes mantidos pela comunidade</b></summary>
 
-Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
-To install in your working directory:
+pkgx → script
 
-```bash
-pkgx install supabase
-```
-
-Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
+Nixpkgs → script
 
 </details>
 
-### Run the CLI
-
-```bash
+Rodar a CLI
+bash
 supabase bootstrap
-```
+Ou via npx:
 
-Or using npx:
-
-```bash
+bash
 npx supabase bootstrap
-```
+O comando bootstrap guia você na criação de um projeto Supabase usando templates.
 
-The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
+📚 Documentação
+Referência de comandos e configuração: Supabase CLI Docs
 
-## Docs
+⚠️ Breaking Changes
+Seguimos semantic versioning para mudanças que impactam comandos, flags e configs da CLI.
+Mas, devido a dependências de imagens de serviços, não garantimos compatibilidade de migrations, seed.sql e tipos gerados entre versões.
+Se precisar de estabilidade, fixe uma versão específica no package.json.
 
-Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
+👩‍💻 Desenvolvimento
+Rodar a partir do código-fonte:
 
-## Breaking changes
-
-We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
-
-However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
-
-## Developing
-
-To run from source:
-
-```sh
+sh
 # Go >= 1.22
 go run . help
-```
+
+
+📘 CI/CD Pipeline - Nexus Platform
+Este documento descreve o fluxo de integração e entrega contínua (CI/CD) do projeto Nexus Platform, com ambientes separados para Staging e Produção.
+
+🔁 Fluxo de Branches
+Branch	Ambiente	Ação automática
+develop	Staging	Deploy automático
+main	Produção	Deploy automático
+qualquer PR	CI geral	Lint, testes, build
+
+⚙️ Workflows GitHub Actions
+ci.yml → roda em qualquer push ou PR.
+
+Lint e Prettier
+
+Reset do banco de testes
+
+Testes unitários e RLS
+
+Migrations locais
+
+Build do projeto
+
+staging.yml → roda em push para develop.
+
+Validação completa
+
+Deploy para Supabase Staging
+
+Deploy para Render Staging
+
+prod.yml → roda em push para main.
+
+Validação completa
+
+Deploy para Supabase Produção
+
+Deploy para Render Produção
+
+🧪 Testes locais
+Antes de rodar testes localmente:
+
+bash
+npm run docker:up
+npm run db:reset:test
+npm run test:clean
+Ou use o script completo:
+
+bash
+npm run ci:test
+🛠️ Boas práticas
+Sempre crie PRs para develop.
+
+Nunca faça push direto na main.
+
+Use npm run ci:test antes de subir código.
+
+Mantenha .env.test com PGHOST=127.0.0.1 para evitar erros de conexão.
+
+📊 Fluxo Visual (ASCII)
+Código
+           [ Pull Request / Push ]
+                     |
+                     v
+               +------------+
+               |   CI.yml   |
+               | Lint/Test  |
+               +------------+
+                     |
+        +------------+-------------+
+        |                          |
+        v                          v
+ [ develop branch ]          [ main branch ]
+        |                          |
+        v                          v
++------------------+        +------------------+
+| staging.yml      |        | prod.yml         |
+| Deploy Staging   |        | Deploy Produção  |
++------------------+        +------------------+
+        |                          |
+   Supabase + Render          Supabase + Render
+     Staging Env                Prod Env

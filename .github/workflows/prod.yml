@@ -1,14 +1,12 @@
-name: CI/CD Pipeline
+name: Production Deploy
 
 on:
   push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
+    branches: [main]
 
 jobs:
-  ci:
-    name: Lint, Test, Migrate, Build
+  production:
+    name: Lint, Test, Migrate, Deploy Production
     runs-on: ubuntu-latest
 
     services:
@@ -70,11 +68,10 @@ jobs:
         with:
           version: latest
 
-      - name: Apply migrations (Test DB)
+      - name: Apply migrations (Production DB)
         run: npm run db:migrate
 
-      - name: Apply migrations to Supabase (main branch only)
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Deploy to Supabase Production
         run: |
           supabase link --project-ref ${{ env.SUPABASE_PROJECT_REF }} --access-token ${{ env.SUPABASE_ACCESS_TOKEN }}
           supabase db push
@@ -82,10 +79,9 @@ jobs:
       - name: Build
         run: npm run build
 
-  deploy-render:
-    name: Trigger Render Deploy
-    needs: ci
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  deploy-render-prod:
+    name: Trigger Render Deploy (Production)
+    needs: production
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Render Deploy
@@ -93,4 +89,4 @@ jobs:
           curl -X POST \
             -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
             -H "Content-Type: application/json" \
-            https://api.render.com/v1/services/srv-xxxxx/deploys
+            https://api.render.com/v1/services/srv-zzzzz/deploys

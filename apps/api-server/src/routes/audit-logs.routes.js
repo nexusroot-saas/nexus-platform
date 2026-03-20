@@ -19,7 +19,7 @@ router.get(
       page = 1,
       limit = 50,
     } = req.query;
-    const companyId = req.user.company_id;
+    const companyId = req.user.companyid;
     const safeLimit = Math.min(Number(limit), 200);
     const offset = (Number(page) - 1) * safeLimit;
 
@@ -34,7 +34,7 @@ router.get(
     }
 
     try {
-      const filters = ['al.company_id = $1'];
+      const filters = ['al.companyid = $1'];
       const params = [companyId];
       if (user_id) {
         params.push(user_id);
@@ -59,13 +59,13 @@ router.get(
       params.push(safeLimit, offset);
       const result = await client.query(
         `SELECT al.id, al.user_id, u.name AS user_name,
-              al.action, al.table_name, al.record_id,
-              al.ip_address, al.created_at
-       FROM audit_logs al
-       LEFT JOIN users u ON u.id = al.user_id AND u.company_id = $1
-       WHERE ${filters.join(' AND ')}
-       ORDER BY al.created_at DESC
-       LIMIT $${params.length - 1} OFFSET $${params.length}`,
+                al.action, al.table_name, al.record_id,
+                al.ip_address, al.created_at
+         FROM audit_logs al
+         LEFT JOIN users u ON u.id = al.user_id AND u.companyid = $1
+         WHERE ${filters.join(' AND ')}
+         ORDER BY al.created_at DESC
+         LIMIT $${params.length - 1} OFFSET $${params.length}`,
         params
       );
       return res
@@ -102,10 +102,10 @@ router.get(
     try {
       const result = await client.query(
         `SELECT id, user_id, action, table_name, old_values, new_values, ip_address, user_agent, created_at
-       FROM audit_logs
-       WHERE record_id = $1 AND company_id = $2
-       ORDER BY created_at ASC`,
-        [req.params.record_id, req.user.company_id]
+         FROM audit_logs
+         WHERE record_id = $1 AND companyid = $2
+         ORDER BY created_at ASC`,
+        [req.params.record_id, req.user.companyid]
       );
       return res
         .status(200)

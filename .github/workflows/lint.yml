@@ -1,7 +1,7 @@
 name: Lint
 on: [push, pull_request]
 jobs:
-   ## lint job
+   ## lint job to check code quality and style
   lint:
     runs-on: ubuntu-latest
     steps:

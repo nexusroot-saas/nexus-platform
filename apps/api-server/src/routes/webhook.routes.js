@@ -35,7 +35,10 @@ function validateHubSignature(secret, rawBody, signature) {
   const expected = createHmac('sha256', secret).update(rawBody).digest('hex');
   const received = signature.slice('sha256='.length);
   try {
-    return timingSafeEqual(Buffer.from(expected, 'hex'), Buffer.from(received, 'hex'));
+    return timingSafeEqual(
+      Buffer.from(expected, 'hex'),
+      Buffer.from(received, 'hex')
+    );
   } catch {
     return false;
   }
@@ -60,15 +63,21 @@ async function resolveCompanyByPhone(phone) {
 
 function classifyMessage(msg) {
   if (msg.interactive) {
-    const reply = msg.interactive?.button_reply?.id || msg.interactive?.list_reply?.id || '';
-    if (reply.includes('consent_sign') || reply.includes('tcle_aceitar')) return 'consent.signed';
+    const reply =
+      msg.interactive?.button_reply?.id ||
+      msg.interactive?.list_reply?.id ||
+      '';
+    if (reply.includes('consent_sign') || reply.includes('tcle_aceitar'))
+      return 'consent.signed';
     if (reply.includes('appt_confirm') || reply.includes('consulta_confirmar'))
       return 'appointment.confirmed';
   }
   if (msg.text?.body) {
     const text = msg.text.body.toLowerCase().trim();
-    if (['sim', '1', 'confirmar', 'confirmo'].includes(text)) return 'appointment.confirmed';
-    if (['aceito', 'aceitar', 'concordo'].includes(text)) return 'consent.signed';
+    if (['sim', '1', 'confirmar', 'confirmo'].includes(text))
+      return 'appointment.confirmed';
+    if (['aceito', 'aceitar', 'concordo'].includes(text))
+      return 'consent.signed';
   }
   return 'message.received';
 }
@@ -121,7 +130,8 @@ router.get('/whatsapp', (req, res) => {
   const mode = req.query['hub.mode'];
   const token = req.query['hub.verify_token'];
   const challenge = req.query['hub.challenge'];
-  const expectedToken = process.env.WHATSAPP_WEBHOOK_SECRET || 'nexus-webhook-dev';
+  const expectedToken =
+    process.env.WHATSAPP_WEBHOOK_SECRET || 'nexus-webhook-dev';
 
   if (mode === 'subscribe' && token === expectedToken) {
     console.log('[WEBHOOK] Webhook WhatsApp verificado com sucesso');
@@ -133,7 +143,8 @@ router.get('/whatsapp', (req, res) => {
 
 router.post('/whatsapp', async (req, res) => {
   const startTime = Date.now();
-  const signature = req.headers['x-hub-signature-256'] || req.headers['x-twilio-signature'];
+  const signature =
+    req.headers['x-hub-signature-256'] || req.headers['x-twilio-signature'];
   const rawBody = JSON.stringify(req.body);
   const provider = req.headers['x-twilio-signature'] ? 'twilio' : 'meta';
   const secret = process.env.WHATSAPP_WEBHOOK_SECRET || 'nexus-webhook-dev';
@@ -162,66 +173,86 @@ router.post('/whatsapp', async (req, res) => {
         });
       }
       const elapsed = Date.now() - startTime;
-      console.log(`[WEBHOOK] ${events.length} evento(s) enfileirado(s) em ${elapsed}ms`);
+      console.log(
+        `[WEBHOOK] ${events.length} evento(s) enfileirado(s) em ${elapsed}ms`
+      );
     } catch (error) {
       console.error('[WEBHOOK] Erro ao enfileirar:', error.message);
     }
   });
 });
 
-router.get('/stats', authenticate, authorize('tenants', 'read'), async (_req, res) => {
-  try {
-    const stats = await getQueueStats();
-    const total = Number(stats.received_last_hour) || 0;
-    const success = Number(stats.done_last_hour) || 0;
-    const successRate = total > 0 ? ((success / total) * 100).toFixed(1) : '100.0';
+router.get(
+  '/stats',
+  authenticate,
+  authorize('tenants', 'read'),
+  async (_req, res) => {
+    try {
+      const stats = await getQueueStats();
+      const total = Number(stats.received_last_hour) || 0;
+      const success = Number(stats.done_last_hour) || 0;
+      const successRate =
+        total > 0 ? ((success / total) * 100).toFixed(1) : '100.0';
 
-    return res.status(200).json({
-      data: {
-        queue: {
-          pending: Number(stats.pending),
-          processing: Number(stats.processing),
-          done: Number(stats.done),
-          failed: Number(stats.failed),
-          dlq: Number(stats.dlq),
+      return res.status(200).json({
+        data: {
+          queue: {
+            pending: Number(stats.pending),
+            processing: Number(stats.processing),
+            done: Number(stats.done),
+            failed: Number(stats.failed),
+            dlq: Number(stats.dlq),
+          },
+          last_hour: {
+            received: total,
+            processed: success,
+            success_rate: `${successRate}%`,
+          },
+          sla: {
+            consent_signed: '< 30 segundos (P0)',
+            appointment_confirmed: '< 2 minutos (P1)',
+            message_received: '< 1 hora (P2)',
+          },
+          dlq_alert: Number(stats.dlq) > 10,
         },
-        last_hour: {
-          received: total,
-          processed: success,
-          success_rate: `${successRate}%`,
-        },
-        sla: {
-          consent_signed: '< 30 segundos (P0)',
-          appointment_confirmed: '< 2 minutos (P1)',
-          message_received: '< 1 hora (P2)',
-        },
-        dlq_alert: Number(stats.dlq) > 10,
-      },
-    });
-  } catch (error) {
-    console.error('[WEBHOOK] stats error:', error.message);
-    return res.status(500).json({ error: 'Erro ao buscar métricas.' });
+      });
+    } catch (error) {
+      console.error('[WEBHOOK] stats error:', error.message);
+      return res.status(500).json({ error: 'Erro ao buscar métricas.' });
+    }
   }
-});
+);
 
-router.get('/dlq', authenticate, authorize('tenants', 'read'), async (_req, res) => {
-  try {
-    const items = await getDLQItems(50);
-    return res.status(200).json({ data: items, total: items.length });
-  } catch (error) {
-    console.error('[WEBHOOK] dlq error:', error.message);
-    return res.status(500).json({ error: 'Erro ao buscar DLQ.' });
+router.get(
+  '/dlq',
+  authenticate,
+  authorize('tenants', 'read'),
+  async (_req, res) => {
+    try {
+      const items = await getDLQItems(50);
+      return res.status(200).json({ data: items, total: items.length });
+    } catch (error) {
+      console.error('[WEBHOOK] dlq error:', error.message);
+      return res.status(500).json({ error: 'Erro ao buscar DLQ.' });
+    }
   }
-});
+);
 
-router.post('/dlq/:id/retry', authenticate, authorize('tenants', 'update'), async (req, res) => {
-  try {
-    await retryDLQItem(req.params.id);
-    return res.status(200).json({ message: 'Item reinserido na fila com sucesso.' });
-  } catch (error) {
-    console.error('[WEBHOOK] retry error:', error.message);
-    return res.status(500).json({ error: 'Erro ao reprocessar item.' });
+router.post(
+  '/dlq/:id/retry',
+  authenticate,
+  authorize('tenants', 'update'),
+  async (req, res) => {
+    try {
+      await retryDLQItem(req.params.id);
+      return res
+        .status(200)
+        .json({ message: 'Item reinserido na fila com sucesso.' });
+    } catch (error) {
+      console.error('[WEBHOOK] retry error:', error.message);
+      return res.status(500).json({ error: 'Erro ao reprocessar item.' });
+    }
   }
-});
+);
 
 export default router;

@@ -16,7 +16,10 @@ export function useRootApi() {
 
       const res = await fetch(`${BASE}${path}`, {
         method,
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: body ? JSON.stringify(body) : undefined,
       });
       const data = await res.json();

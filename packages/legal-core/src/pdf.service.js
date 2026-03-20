@@ -7,9 +7,13 @@ export async function renderPdf(htmlContent, options = {}) {
   if (!browser) {
     try {
       browser = await puppeteer.launch({
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-        headless: 'new',          // headless moderno (mais estável)
-        timeout: 30000,           // 30s para launch
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+        ],
+        headless: 'new', // headless moderno (mais estável)
+        timeout: 30000, // 30s para launch
       });
       console.log('Browser Puppeteer iniciado com sucesso');
     } catch (err) {

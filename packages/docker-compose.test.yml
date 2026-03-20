@@ -7,9 +7,9 @@ services:
       POSTGRES_PASSWORD: test123
       POSTGRES_DB: nexus_test
     ports:
-      - "5433:5432"
+      - '5433:5432'
     command: postgres -c config_file=/etc/postgresql/postgresql.conf
-    
+
   supabase:
     image: supabase/postgres:15.1.0.147
     depends_on:

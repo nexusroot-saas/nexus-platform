@@ -1,5 +1,8 @@
 // test-pdf.js
-import { renderPdf, closeBrowser } from './packages/legal-core/src/pdf.service.js';
+import {
+  renderPdf,
+  closeBrowser,
+} from './packages/legal-core/src/pdf.service.js';
 
 async function main() {
   const html = `
@@ -21,7 +24,10 @@ async function main() {
     const base64 = await renderPdf(html);
     console.log('PDF gerado com sucesso!');
     console.log('Comprimento do base64:', base64.length);
-    console.log('Primeiros 100 chars do base64:', base64.substring(0, 100) + '...');
+    console.log(
+      'Primeiros 100 chars do base64:',
+      base64.substring(0, 100) + '...'
+    );
 
     // Opcional: salvar o PDF para visualizar
     const fs = await import('fs/promises');
@@ -35,7 +41,7 @@ async function main() {
   }
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('Erro fatal no main:', err);
   process.exit(1);
 });

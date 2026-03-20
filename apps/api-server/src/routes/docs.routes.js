@@ -15,7 +15,11 @@ try {
   spec = yaml.load(readFileSync(yamlPath, 'utf8'));
 } catch (err) {
   console.error('[docs] Erro ao carregar openapi.yaml:', err.message);
-  spec = { openapi: '3.0.0', info: { title: 'Nexus API', version: '1.0.0' }, paths: {} };
+  spec = {
+    openapi: '3.0.0',
+    info: { title: 'Nexus API', version: '1.0.0' },
+    paths: {},
+  };
 }
 
 // Swagger UI com tema customizado

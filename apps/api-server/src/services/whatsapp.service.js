@@ -48,7 +48,9 @@ async function metaSend(payload) {
   const data = await res.json();
 
   if (!res.ok) {
-    throw new Error(`Meta API error ${res.status}: ${JSON.stringify(data.error)}`);
+    throw new Error(
+      `Meta API error ${res.status}: ${JSON.stringify(data.error)}`
+    );
   }
 
   return { messageId: data.messages?.[0]?.id, provider: 'meta' };
@@ -56,7 +58,10 @@ async function metaSend(payload) {
 
 async function twilioSend(to, body) {
   if (!TWILIO_SID || !TWILIO_TOKEN) {
-    console.log('[WHATSAPP] Twilio não configurado — simulando envio para:', to);
+    console.log(
+      '[WHATSAPP] Twilio não configurado — simulando envio para:',
+      to
+    );
     return { messageId: `sim-${Date.now()}`, provider: 'twilio-simulated' };
   }
 
@@ -90,7 +95,13 @@ async function twilioSend(to, body) {
  * Enviar termo de consentimento LGPD (TCLE)
  * Cria mensagem interativa com botões Aceitar / Recusar
  */
-export async function sendConsentTerm({ to, patientName, consentId, termVersion, clinicName }) {
+export async function sendConsentTerm({
+  to,
+  patientName,
+  consentId,
+  termVersion,
+  clinicName,
+}) {
   const phone = sanitizePhone(to);
   if (!phone) throw new Error('Número de telefone inválido.');
 
@@ -195,8 +206,17 @@ export async function sendAppointmentReminder({
       },
       action: {
         buttons: [
-          { type: 'reply', reply: { id: `appt_confirm_${appointmentId}`, title: '✅ Confirmar' } },
-          { type: 'reply', reply: { id: `appt_cancel_${appointmentId}`, title: '❌ Cancelar' } },
+          {
+            type: 'reply',
+            reply: {
+              id: `appt_confirm_${appointmentId}`,
+              title: '✅ Confirmar',
+            },
+          },
+          {
+            type: 'reply',
+            reply: { id: `appt_cancel_${appointmentId}`, title: '❌ Cancelar' },
+          },
         ],
       },
     },

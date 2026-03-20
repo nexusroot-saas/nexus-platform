@@ -13,7 +13,9 @@ router.get('/ready', async (_req, res) => {
     res.status(200).json({ status: 'ok', db: 'connected' });
   } catch (err) {
     console.error('[health/ready] DB error:', err.message);
-    res.status(503).json({ status: 'error', db: 'disconnected', detail: err.message });
+    res
+      .status(503)
+      .json({ status: 'error', db: 'disconnected', detail: err.message });
   }
 });
 

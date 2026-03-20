@@ -35,7 +35,9 @@ beforeAll(async () => {
     );
   `);
 
-  await clientA.query('TRUNCATE TABLE patients, companies RESTART IDENTITY CASCADE;');
+  await clientA.query(
+    'TRUNCATE TABLE patients, companies RESTART IDENTITY CASCADE;'
+  );
 
   // Inserir companies
   await clientA.query(
@@ -44,7 +46,7 @@ beforeAll(async () => {
      ON CONFLICT (id) DO NOTHING;`,
     [TENANT_A]
   );
-  
+
   await clientA.query(
     `INSERT INTO companies (id, cnpj, nome_fantasia, tenant_type, status) 
      VALUES ($1, '22.222.222/0002-22', 'OdontoVita', 'ODONTO', 'ACTIVE') 
@@ -83,7 +85,9 @@ beforeAll(async () => {
   // Configurar RLS
   await clientA.query('ALTER TABLE patients ENABLE ROW LEVEL SECURITY;');
   await clientA.query('ALTER TABLE patients FORCE ROW LEVEL SECURITY;');
-  await clientA.query('DROP POLICY IF EXISTS "tenant_isolation_patients" ON patients;');
+  await clientA.query(
+    'DROP POLICY IF EXISTS "tenant_isolation_patients" ON patients;'
+  );
   await clientA.query(`
     CREATE POLICY "tenant_isolation_patients" ON patients 
     FOR ALL 
@@ -132,11 +136,17 @@ test('Tenant A pode inserir paciente no seu tenant', async () => {
 });
 
 test('Tenant A NÃO deve ver pacientes do Tenant B', async () => {
-  const result = await clientA.query('SELECT id FROM patients WHERE company_id = $1;', [TENANT_B]);
+  const result = await clientA.query(
+    'SELECT id FROM patients WHERE company_id = $1;',
+    [TENANT_B]
+  );
   expect(result.rowCount).toBe(0);
 });
 
 test('Tenant B NÃO deve ver pacientes do Tenant A', async () => {
-  const result = await clientB.query('SELECT id FROM patients WHERE company_id = $1;', [TENANT_A]);
+  const result = await clientB.query(
+    'SELECT id FROM patients WHERE company_id = $1;',
+    [TENANT_A]
+  );
   expect(result.rowCount).toBe(0);
 });

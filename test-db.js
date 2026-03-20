@@ -10,19 +10,25 @@ const pool = new Pool({
 
 async function testConnection() {
   console.log('🔄 Testando conexão...');
-  
+
   try {
     const client = await pool.connect();
     console.log('✅ Conectado como:', client.user);
-    
+
     // Testa RLS básico
-    await client.query('SET app.currentcompanyid = ANY(SELECT id FROM companies LIMIT 1)');
+    await client.query(
+      'SET app.currentcompanyid = ANY(SELECT id FROM companies LIMIT 1)'
+    );
     const companies = await client.query('SELECT COUNT(*) FROM companies');
-    console.log('✅ RLS funcionando:', companies.rows[0].count, 'companies visíveis');
-    
+    console.log(
+      '✅ RLS funcionando:',
+      companies.rows[0].count,
+      'companies visíveis'
+    );
+
     const users = await client.query('SELECT COUNT(*) FROM users');
     console.log('✅ Usuários:', users.rows[0].count);
-    
+
     client.release();
     console.log('🎉 DATABASE 100% PRONTO!');
   } catch (err) {

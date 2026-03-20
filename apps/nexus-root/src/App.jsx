@@ -1,9 +1,9 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useRootAuth } from './hooks/useRootAuth.js';
-import RootLoginPage  from './pages/LoginPage.jsx';
-import RootDashboard  from './pages/DashboardPage.jsx';
-import TenantsPage    from './pages/TenantsPage.jsx';
-import UsersPage      from './pages/UsersPage.jsx';
+import RootLoginPage from './pages/LoginPage.jsx';
+import RootDashboard from './pages/DashboardPage.jsx';
+import TenantsPage from './pages/TenantsPage.jsx';
+import UsersPage from './pages/UsersPage.jsx';
 
 function Protected({ children }) {
   const { user } = useRootAuth();
@@ -16,9 +16,30 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<RootLoginPage />} />
-      <Route path="/" element={<Protected><RootDashboard /></Protected>} />
-      <Route path="/tenants" element={<Protected><TenantsPage /></Protected>} />
-      <Route path="/users" element={<Protected><UsersPage /></Protected>} />
+      <Route
+        path="/"
+        element={
+          <Protected>
+            <RootDashboard />
+          </Protected>
+        }
+      />
+      <Route
+        path="/tenants"
+        element={
+          <Protected>
+            <TenantsPage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/users"
+        element={
+          <Protected>
+            <UsersPage />
+          </Protected>
+        }
+      />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

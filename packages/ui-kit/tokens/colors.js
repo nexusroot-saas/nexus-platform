@@ -145,10 +145,34 @@ export const semantic = {
 
 // ── Mapa de submarca → cor primitiva base ─────────────────────────────────
 export const brandMap = {
-  MED: { primary: primitive.blue[500], hover: primitive.blue[600], soft: primitive.blue[50] },
-  CLIN: { primary: primitive.pink[500], hover: primitive.pink[600], soft: primitive.pink[50] },
-  ODONTO: { primary: primitive.green[500], hover: primitive.green[600], soft: primitive.green[50] },
-  LAB: { primary: primitive.purple[500], hover: primitive.purple[600], soft: primitive.purple[50] },
-  IMG: { primary: primitive.orange[500], hover: primitive.orange[600], soft: primitive.orange[50] },
-  ADM: { primary: primitive.teal[500], hover: primitive.teal[600], soft: primitive.teal[50] },
+  MED: {
+    primary: primitive.blue[500],
+    hover: primitive.blue[600],
+    soft: primitive.blue[50],
+  },
+  CLIN: {
+    primary: primitive.pink[500],
+    hover: primitive.pink[600],
+    soft: primitive.pink[50],
+  },
+  ODONTO: {
+    primary: primitive.green[500],
+    hover: primitive.green[600],
+    soft: primitive.green[50],
+  },
+  LAB: {
+    primary: primitive.purple[500],
+    hover: primitive.purple[600],
+    soft: primitive.purple[50],
+  },
+  IMG: {
+    primary: primitive.orange[500],
+    hover: primitive.orange[600],
+    soft: primitive.orange[50],
+  },
+  ADM: {
+    primary: primitive.teal[500],
+    hover: primitive.teal[600],
+    soft: primitive.teal[50],
+  },
 };

@@ -16,8 +16,12 @@ function isExpired(token) {
 }
 
 export function useRootAuth() {
-  const [accessToken, setAccessToken] = useState(() => sessionStorage.getItem('root_at'));
-  const [refreshToken, setRefreshToken] = useState(() => sessionStorage.getItem('root_rt'));
+  const [accessToken, setAccessToken] = useState(() =>
+    sessionStorage.getItem('root_at')
+  );
+  const [refreshToken, setRefreshToken] = useState(() =>
+    sessionStorage.getItem('root_rt')
+  );
   const [user, setUser] = useState(() => {
     const at = sessionStorage.getItem('root_at');
     return at ? parseJwt(at) : null;

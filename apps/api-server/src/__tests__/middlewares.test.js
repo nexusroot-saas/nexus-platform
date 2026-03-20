@@ -41,7 +41,10 @@ describe('authenticate middleware', () => {
   });
 
   test('401 quando token está expirado', () => {
-    const token = makeToken({ sub: 'uuid', company_id: 'cid', role: 'MEDICO' }, '-1s');
+    const token = makeToken(
+      { sub: 'uuid', company_id: 'cid', role: 'MEDICO' },
+      '-1s'
+    );
     const { req, res, next } = mockReqRes({ authorization: `Bearer ${token}` });
     authenticate(req, res, next);
     expect(res._status).toBe(401);
@@ -49,7 +52,9 @@ describe('authenticate middleware', () => {
   });
 
   test('401 quando token é inválido', () => {
-    const { req, res, next } = mockReqRes({ authorization: 'Bearer token-invalido' });
+    const { req, res, next } = mockReqRes({
+      authorization: 'Bearer token-invalido',
+    });
     authenticate(req, res, next);
     expect(res._status).toBe(401);
     expect(res._body.error).toMatch(/inválido/i);

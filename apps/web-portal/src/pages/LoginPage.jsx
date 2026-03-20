@@ -7,10 +7,10 @@ export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const [email, setEmail]       = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading]   = useState(false);
-  const [error, setError]       = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -34,11 +34,15 @@ export default function LoginPage() {
           <div className="login-brand-icon">N</div>
           <h1 className="login-brand-name">Nexus</h1>
           <p className="login-brand-tagline">
-            Gestão em Saúde &amp;<br/>Compliance integrados.
+            Gestão em Saúde &amp;
+            <br />
+            Compliance integrados.
           </p>
           <div className="login-modules">
-            {['ERP', 'EHR', 'LGPD'].map(m => (
-              <span key={m} className="login-module-pill">{m}</span>
+            {['ERP', 'EHR', 'LGPD'].map((m) => (
+              <span key={m} className="login-module-pill">
+                {m}
+              </span>
             ))}
           </div>
         </div>
@@ -50,7 +54,9 @@ export default function LoginPage() {
         <div className="login-form-wrap animate-fade-up">
           <div className="login-form-header">
             <h2 className="login-form-title">Bem-vindo de volta</h2>
-            <p className="login-form-sub">Entre com suas credenciais para acessar a plataforma.</p>
+            <p className="login-form-sub">
+              Entre com suas credenciais para acessar a plataforma.
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="login-form">
@@ -61,34 +67,42 @@ export default function LoginPage() {
             )}
 
             <div className="form-group">
-              <label className="form-label" htmlFor="email">E-mail</label>
+              <label className="form-label" htmlFor="email">
+                E-mail
+              </label>
               <input
                 id="email"
                 type="email"
                 className="form-input"
                 placeholder="seu@email.com"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
                 autoComplete="username"
                 required
               />
             </div>
 
             <div className="form-group">
-              <label className="form-label" htmlFor="password">Senha</label>
+              <label className="form-label" htmlFor="password">
+                Senha
+              </label>
               <input
                 id="password"
                 type="password"
                 className="form-input"
                 placeholder="••••••••"
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
                 required
               />
             </div>
 
-            <button type="submit" className="btn btn-primary login-btn" disabled={loading}>
+            <button
+              type="submit"
+              className="btn btn-primary login-btn"
+              disabled={loading}
+            >
               {loading ? (
                 <>
                   <span className="login-spinner" aria-hidden="true" />
@@ -107,14 +121,20 @@ export default function LoginPage() {
               <button
                 type="button"
                 className="login-dev-btn"
-                onClick={() => { setEmail('admin@saudetotal.com'); setPassword('senha123'); }}
+                onClick={() => {
+                  setEmail('admin@saudetotal.com');
+                  setPassword('senha123');
+                }}
               >
                 Saúde Total (MED)
               </button>
               <button
                 type="button"
                 className="login-dev-btn"
-                onClick={() => { setEmail('admin@odontovita.com'); setPassword('senha123'); }}
+                onClick={() => {
+                  setEmail('admin@odontovita.com');
+                  setPassword('senha123');
+                }}
               >
                 OdontoVita
               </button>

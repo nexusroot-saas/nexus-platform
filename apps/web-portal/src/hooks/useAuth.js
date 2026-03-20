@@ -18,8 +18,12 @@ function isTokenExpired(token) {
 }
 
 export function useAuth() {
-  const [accessToken, setAccessToken] = useState(() => localStorage.getItem('nexus_at'));
-  const [refreshToken, setRefreshToken] = useState(() => localStorage.getItem('nexus_rt'));
+  const [accessToken, setAccessToken] = useState(() =>
+    localStorage.getItem('nexus_at')
+  );
+  const [refreshToken, setRefreshToken] = useState(() =>
+    localStorage.getItem('nexus_rt')
+  );
   const [user, setUser] = useState(() => {
     const at = localStorage.getItem('nexus_at');
     return at ? parseJwt(at) : null;

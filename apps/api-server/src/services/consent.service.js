@@ -43,7 +43,10 @@ export async function createConsent({
   const termText = TERM_TEXTS[term_version];
 
   if (!termText) {
-    return { error: `Versão de termo '${term_version}' não encontrada.`, status: 400 };
+    return {
+      error: `Versão de termo '${term_version}' não encontrada.`,
+      status: 400,
+    };
   }
 
   const termTextHash = hashTermText(termText);
@@ -131,7 +134,12 @@ export async function sendConsent(consent) {
  * signConsent — registra a assinatura do paciente (chamado pelo webhook ou portal)
  * Salva: IP, geolocalização, timestamp NTP e gera PDF snapshot
  */
-export async function signConsent({ consent_id, company_id, ip_address, geolocation }) {
+export async function signConsent({
+  consent_id,
+  company_id,
+  ip_address,
+  geolocation,
+}) {
   const client = await pool.connect();
 
   try {
@@ -146,12 +154,19 @@ export async function signConsent({ consent_id, company_id, ip_address, geolocat
            AND status = 'PENDENTE'
            AND expires_at > NOW()
          RETURNING id, patient_id, term_version, status, signed_at`,
-        [consent_id, ip_address, geolocation ? JSON.stringify(geolocation) : null]
+        [
+          consent_id,
+          ip_address,
+          geolocation ? JSON.stringify(geolocation) : null,
+        ]
       )
     );
 
     if (result.rowCount === 0) {
-      return { error: 'Consentimento não encontrado, já assinado ou expirado.', status: 400 };
+      return {
+        error: 'Consentimento não encontrado, já assinado ou expirado.',
+        status: 400,
+      };
     }
 
     // TODO: gerar PDF snapshot via @nexus/legal-core e salvar no cold storage

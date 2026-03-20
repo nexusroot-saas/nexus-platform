@@ -101,7 +101,8 @@ components:
           type: string
         role:
           type: string
-          enum: [ROOT, TENANT_ADMIN, MEDICO, RECEPCIONISTA, FINANCEIRO, DPO_EXTERNO]
+          enum:
+            [ROOT, TENANT_ADMIN, MEDICO, RECEPCIONISTA, FINANCEIRO, DPO_EXTERNO]
         company_id:
           type: string
           format: uuid
@@ -148,11 +149,11 @@ components:
         phone:
           type: string
           nullable: true
-          example: "(67) 99999-9999"
+          example: '(67) 99999-9999'
         cpf:
           type: string
           nullable: true
-          example: "111.111.111-11"
+          example: '111.111.111-11'
         date_of_birth:
           type: string
           format: date
@@ -217,7 +218,8 @@ components:
           example: 30
         status:
           type: string
-          enum: [AGENDADO, CONFIRMADO, EM_ATENDIMENTO, CONCLUIDO, CANCELADO, FALTOU]
+          enum:
+            [AGENDADO, CONFIRMADO, EM_ATENDIMENTO, CONCLUIDO, CANCELADO, FALTOU]
         notes:
           type: string
           nullable: true
@@ -238,7 +240,7 @@ components:
         scheduled_date:
           type: string
           format: date-time
-          example: "2026-04-01T09:00:00Z"
+          example: '2026-04-01T09:00:00Z'
         duration_minutes:
           type: integer
           default: 30
@@ -260,7 +262,7 @@ components:
           nullable: true
         term_version:
           type: string
-          example: "1.0"
+          example: '1.0'
         channel:
           type: string
           enum: [WHATSAPP, EMAIL, TABLET]
@@ -292,7 +294,7 @@ components:
           default: WHATSAPP
         term_version:
           type: string
-          default: "1.0"
+          default: '1.0'
 
     # ── Audit Logs ─────────────────────────────────────────────────────────
     AuditLog:
@@ -366,7 +368,7 @@ components:
           example: Clínica São Lucas
         cnpj:
           type: string
-          example: "00.000.000/0001-00"
+          example: '00.000.000/0001-00'
         razao_social:
           type: string
         tenant_type:
@@ -401,7 +403,6 @@ components:
 
 # ── Paths ─────────────────────────────────────────────────────────────────
 paths:
-
   # ── Health ────────────────────────────────────────────────────────────
   /health/live:
     get:
@@ -575,7 +576,7 @@ paths:
           schema:
             type: string
             format: date
-          example: "2026-04-01"
+          example: '2026-04-01'
         - name: patient_id
           in: query
           schema:

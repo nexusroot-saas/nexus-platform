@@ -4,15 +4,15 @@
    ============================================================ */
 
 .theme-med {
-  --color-brand-primary:  #1a6cff;
-  --color-brand-hover:    #1254cc;
-  --color-brand-soft:     #e8f0ff;
-  --color-brand-text:     #ffffff;
+  --color-brand-primary: #1a6cff;
+  --color-brand-hover: #1254cc;
+  --color-brand-soft: #e8f0ff;
+  --color-brand-text: #ffffff;
 
-  --sidebar-bg:           #0a1628;
-  --sidebar-border:       #162040;
-  --sidebar-text:         #c8d8f0;
-  --sidebar-text-active:  #ffffff;
-  --sidebar-accent:       #1a6cff;
-  --logo-color:           #4a9eff;
+  --sidebar-bg: #0a1628;
+  --sidebar-border: #162040;
+  --sidebar-text: #c8d8f0;
+  --sidebar-text-active: #ffffff;
+  --sidebar-accent: #1a6cff;
+  --logo-color: #4a9eff;
 }

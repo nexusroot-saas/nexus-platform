@@ -1,6 +1,7 @@
 import js from '@eslint/js';
 import prettierConfig from 'eslint-config-prettier';
 import prettierPlugin from 'eslint-plugin-prettier';
+import globals from 'globals';
 
 export default [
   // Configurações recomendadas
@@ -10,7 +11,7 @@ export default [
   // ── Configuração base monorepo ──────────────────────────────
   {
     plugins: {
-      prettier: prettierPlugin
+      prettier: prettierPlugin,
     },
     rules: {
       'prettier/prettier': 'error',
@@ -18,8 +19,9 @@ export default [
       'no-console': 'off',
     },
     languageOptions: {
-      ecmaVersion: 2022,
+      ecmaVersion: 'latest', // 2024+
       sourceType: 'module',
+      ecmaFeatures: { jsx: true }, // ✅ FIX: Suporte JSX
       globals: {
         process: 'readonly',
         console: 'readonly',
@@ -30,6 +32,10 @@ export default [
         clearTimeout: 'readonly',
         setInterval: 'readonly',
         clearInterval: 'readonly',
+        // ✅ FIX: Erros no-undef
+        atob: 'readonly',
+        URLSearchParams: 'readonly',
+        ...globals.node, // Node.js completo
       },
     },
   },
@@ -48,9 +54,29 @@ export default [
     },
   },
 
+  // ── Frontend React/JSX (apps web-portal & nexus-root) ──────
+  {
+    files: [
+      'apps/web-portal/**/*.{js,jsx,ts,tsx}',
+      'apps/nexus-root/**/*.{js,jsx,ts,tsx}',
+    ],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        window: 'readonly',
+        document: 'readonly',
+        localStorage: 'readonly',
+        sessionStorage: 'readonly',
+        alert: 'readonly',
+        confirm: 'readonly',
+        navigator: 'readonly',
+      },
+    },
+  },
+
   // ── Testes Jest ────────────────────────────────────────────
   {
-    files: ['**/__tests__/**/*.js', '**/*.test.js'],
+    files: ['**/__tests__/**/*.{js,jsx}', '**/*.{test,spec}.{js,jsx}'],
     languageOptions: {
       globals: {
         describe: 'readonly',
@@ -66,35 +92,14 @@ export default [
     },
   },
 
-  // ── Frontend (browser globals) ────────────────────────────
-  {
-    files: [
-      'apps/web-portal/**/*.js',
-      'apps/web-portal/**/*.jsx',
-      'apps/nexus-root/**/*.js',
-      'apps/nexus-root/**/*.jsx',
-    ],
-    languageOptions: {
-      globals: {
-        window: 'readonly',
-        document: 'readonly',
-        localStorage: 'readonly',
-        sessionStorage: 'readonly',
-        alert: 'readonly',
-        confirm: 'readonly',
-        navigator: 'readonly',
-      },
-    },
-  },
-
   // ── Ignores ────────────────────────────────────────────────
   {
     ignores: [
       'node_modules/**',
-      'dist/**', 
+      'dist/**',
       'build/**',
       '.vite/**',
-      '**/*.min.js'
+      '**/*.min.js',
     ],
   },
 ];

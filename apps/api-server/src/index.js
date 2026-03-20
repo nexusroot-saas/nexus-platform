@@ -31,7 +31,10 @@ app.use(
         'http://localhost:5173',
         'http://localhost:5174',
       ].filter(Boolean);
-      if (!origin || allowed.some((u) => origin.startsWith(u.replace(/\/$/, '')))) {
+      if (
+        !origin ||
+        allowed.some((u) => origin.startsWith(u.replace(/\/$/, '')))
+      ) {
         cb(null, true);
       } else {
         cb(new Error('Not allowed by CORS'));

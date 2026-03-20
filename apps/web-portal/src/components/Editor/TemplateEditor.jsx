@@ -1,38 +1,41 @@
-import React, { useState } from 'react'
-import MonacoEditor from './MonacoEditor'
-import PdfPreview from './PdfPreview'
-import { documentTemplatesApi } from '../../services/api'
+import React, { useState } from 'react';
+import MonacoEditor from './MonacoEditor';
+import PdfPreview from './PdfPreview';
+import { documentTemplatesApi } from '../../services/api';
 
 const TemplateEditor = ({ template, onSave }) => {
-  const [contentHtml, setContentHtml] = useState(template.contentHtml)
-  const [previewBase64, setPreviewBase64] = useState(null)
-  const [saving, setSaving] = useState(false)
-  const [previewing, setPreviewing] = useState(false)
+  const [contentHtml, setContentHtml] = useState(template.contentHtml);
+  const [previewBase64, setPreviewBase64] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [previewing, setPreviewing] = useState(false);
 
   const handlePreview = async () => {
-    setPreviewing(true)
+    setPreviewing(true);
     try {
-      const { data } = await documentTemplatesApi.preview(template.doctype, contentHtml)
-      setPreviewBase64(data.pdfbase64)
+      const { data } = await documentTemplatesApi.preview(
+        template.doctype,
+        contentHtml
+      );
+      setPreviewBase64(data.pdfbase64);
     } catch (error) {
-      alert('Erro na pré-visualização')
+      alert('Erro na pré-visualização');
     } finally {
-      setPreviewing(false)
+      setPreviewing(false);
     }
-  }
+  };
 
   const handleSave = async () => {
-    setSaving(true)
+    setSaving(true);
     try {
-      await documentTemplatesApi.save(template.doctype, contentHtml)
-      onSave()
-      alert('Template salvo com sucesso!')
+      await documentTemplatesApi.save(template.doctype, contentHtml);
+      onSave();
+      alert('Template salvo com sucesso!');
     } catch (error) {
-      alert('Erro ao salvar template')
+      alert('Erro ao salvar template');
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   return (
     <div className="template-editor">
@@ -49,18 +52,16 @@ const TemplateEditor = ({ template, onSave }) => {
       </div>
 
       <div className="editor-content">
-        <MonacoEditor 
+        <MonacoEditor
           value={contentHtml}
           onChange={setContentHtml}
           doctype={template.doctype}
         />
-        
-        {previewBase64 && (
-          <PdfPreview base64={previewBase64} />
-        )}
+
+        {previewBase64 && <PdfPreview base64={previewBase64} />}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default TemplateEditor
+export default TemplateEditor;

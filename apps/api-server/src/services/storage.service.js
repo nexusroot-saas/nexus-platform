@@ -72,7 +72,9 @@ export async function uploadFile({
   uploadedBy,
 }) {
   if (!Object.values(BUCKETS).includes(bucket)) {
-    throw new Error(`Bucket inválido. Use: ${Object.values(BUCKETS).join(', ')}`);
+    throw new Error(
+      `Bucket inválido. Use: ${Object.values(BUCKETS).join(', ')}`
+    );
   }
 
   const objectPath = buildObjectPath(companyId, entityType, fileName);
@@ -80,7 +82,9 @@ export async function uploadFile({
 
   // Modo simulação quando Supabase não está configurado
   if (!isConfigured()) {
-    console.log(`[STORAGE] Simulando upload: ${bucket}/${objectPath} (${fileBuffer.length} bytes)`);
+    console.log(
+      `[STORAGE] Simulando upload: ${bucket}/${objectPath} (${fileBuffer.length} bytes)`
+    );
     return await saveDocumentMetadata({
       companyId,
       bucket,
@@ -109,7 +113,9 @@ export async function uploadFile({
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ message: res.statusText }));
-    throw new Error(`Storage upload error ${res.status}: ${err.message || err.error}`);
+    throw new Error(
+      `Storage upload error ${res.status}: ${err.message || err.error}`
+    );
   }
 
   // Persistir metadados e hash no banco
@@ -184,7 +190,9 @@ export async function getSignedUrl(bucket, objectPath) {
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(`Erro ao gerar signed URL: ${err.message || res.statusText}`);
+    throw new Error(
+      `Erro ao gerar signed URL: ${err.message || res.statusText}`
+    );
   }
 
   const data = await res.json();
@@ -206,7 +214,10 @@ export async function getDocumentWithUrl(documentId, companyId) {
   if (rows.length === 0) throw new Error('Documento não encontrado.');
 
   const doc = rows[0];
-  const { signedUrl, expiresIn } = await getSignedUrl(doc.bucket, doc.object_path);
+  const { signedUrl, expiresIn } = await getSignedUrl(
+    doc.bucket,
+    doc.object_path
+  );
 
   return { ...doc, signed_url: signedUrl, signed_url_expires_in: expiresIn };
 }
@@ -235,7 +246,8 @@ export async function verifyDocumentIntegrity(documentId, companyId) {
   const url = `${SUPABASE_URL}/storage/v1/object/${doc.bucket}/${doc.object_path}`;
   const res = await fetch(url, { headers: storageHeaders() });
 
-  if (!res.ok) throw new Error(`Arquivo não encontrado no storage: ${doc.object_path}`);
+  if (!res.ok)
+    throw new Error(`Arquivo não encontrado no storage: ${doc.object_path}`);
 
   const buffer = Buffer.from(await res.arrayBuffer());
   const currentHash = computeHash(buffer);

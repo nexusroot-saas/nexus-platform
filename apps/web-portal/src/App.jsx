@@ -29,7 +29,8 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
   const { user, loading } = useContext(AuthContext);
   if (loading) return <div>Carregando...</div>;
   if (!user) return <Navigate to="/login" replace />;
-  if (requireAdmin && user.role !== 'TENANTADMIN') return <Navigate to="/manager" replace />;
+  if (requireAdmin && user.role !== 'TENANTADMIN')
+    return <Navigate to="/manager" replace />;
   return children;
 };
 
@@ -38,7 +39,9 @@ function AppRoutes() {
 
   useEffect(() => {
     const themeClass = user ? THEME_MAP[user.tenant_type] || 'theme-med' : '';
-    Object.values(THEME_MAP).forEach((cls) => document.body.classList.remove(cls));
+    Object.values(THEME_MAP).forEach((cls) =>
+      document.body.classList.remove(cls)
+    );
     if (themeClass) {
       document.body.classList.add(themeClass);
     }

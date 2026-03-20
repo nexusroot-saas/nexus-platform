@@ -39,7 +39,9 @@ router.get(
        LIMIT $${params.length - 1} OFFSET $${params.length}`,
         params
       );
-      return res.status(200).json({ data: result.rows, total: result.rowCount });
+      return res
+        .status(200)
+        .json({ data: result.rows, total: result.rowCount });
     } catch (err) {
       console.error('[consents] GET error:', err.message);
       return res.status(500).json({ error: 'Erro ao buscar consentimentos.' });
@@ -82,9 +84,12 @@ router.post(
   authorize('consents', 'create'),
   async (req, res) => {
     const { patient_id, channel = 'WHATSAPP', term_version = '1.0' } = req.body;
-    if (!patient_id) return res.status(400).json({ error: 'patient_id é obrigatório.' });
+    if (!patient_id)
+      return res.status(400).json({ error: 'patient_id é obrigatório.' });
     if (!['WHATSAPP', 'EMAIL', 'TABLET'].includes(channel)) {
-      return res.status(400).json({ error: 'channel deve ser WHATSAPP, EMAIL ou TABLET.' });
+      return res
+        .status(400)
+        .json({ error: 'channel deve ser WHATSAPP, EMAIL ou TABLET.' });
     }
     try {
       const result = await createConsent({
@@ -95,13 +100,15 @@ router.post(
         created_by: req.user.sub,
         ip_address: req.ip,
       });
-      if (result.error) return res.status(result.status || 400).json({ error: result.error });
+      if (result.error)
+        return res.status(result.status || 400).json({ error: result.error });
       sendConsent(result.consent).catch((err) =>
         console.error('[consents] sendConsent error:', err.message)
       );
-      return res
-        .status(201)
-        .json({ data: result.consent, message: `Termo enviado via ${channel}.` });
+      return res.status(201).json({
+        data: result.consent,
+        message: `Termo enviado via ${channel}.`,
+      });
     } catch (err) {
       console.error('[consents] POST /send error:', err.message);
       return res.status(500).json({ error: 'Erro ao enviar consentimento.' });

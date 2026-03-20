@@ -3,7 +3,8 @@ import request from 'supertest';
 import jwt from 'jsonwebtoken';
 
 // Set env before importing app
-process.env.DATABASE_URL = 'postgresql://nexus:nexus_dev_pass@localhost:5432/nexus_dev';
+process.env.DATABASE_URL =
+  'postgresql://nexus:nexus_dev_pass@localhost:5432/nexus_dev';
 
 import app from '../index.js';
 
@@ -45,7 +46,9 @@ describe('POST /api/v1/auth/login', () => {
   });
 
   test('400 quando falta senha', async () => {
-    const res = await request(app).post('/api/v1/auth/login').send({ email: 'admin@test.com' });
+    const res = await request(app)
+      .post('/api/v1/auth/login')
+      .send({ email: 'admin@test.com' });
     expect(res.status).toBe(400);
   });
 });
@@ -73,9 +76,13 @@ describe('GET /api/v1/patients — autenticação', () => {
   });
 
   test('401 com token expirado', async () => {
-    const expired = jwt.sign({ sub: 'x', company_id: 'y', role: 'MEDICO' }, JWT_SECRET, {
-      expiresIn: '-1s',
-    });
+    const expired = jwt.sign(
+      { sub: 'x', company_id: 'y', role: 'MEDICO' },
+      JWT_SECRET,
+      {
+        expiresIn: '-1s',
+      }
+    );
     const res = await request(app)
       .get('/api/v1/patients')
       .set('Authorization', `Bearer ${expired}`);
@@ -92,7 +99,9 @@ describe('GET /api/v1/patients — autenticação', () => {
 
   test('403 para DPO_EXTERNO (sem permissão patients:read)', async () => {
     const token = makeToken({ role: 'DPO_EXTERNO' });
-    const res = await request(app).get('/api/v1/patients').set('Authorization', `Bearer ${token}`);
+    const res = await request(app)
+      .get('/api/v1/patients')
+      .set('Authorization', `Bearer ${token}`);
     expect(res.status).toBe(403);
   });
 });
@@ -114,7 +123,9 @@ describe('GET /api/v1/document-templates — autenticação e existência de rot
 
 describe('POST /api/v1/patients — validação', () => {
   test('401 sem token', async () => {
-    const res = await request(app).post('/api/v1/patients').send({ name: 'Teste' });
+    const res = await request(app)
+      .post('/api/v1/patients')
+      .send({ name: 'Teste' });
     expect(res.status).toBe(401);
   });
 
@@ -160,7 +171,9 @@ describe('POST /api/v1/appointments — validação', () => {
 describe('GET /api/v1/consents — verificação de módulo', () => {
   test('403 quando tenant não tem módulo NEXUSLEGAL', async () => {
     const token = makeToken({ modules: ['NEXUSMED'] });
-    const res = await request(app).get('/api/v1/consents').set('Authorization', `Bearer ${token}`);
+    const res = await request(app)
+      .get('/api/v1/consents')
+      .set('Authorization', `Bearer ${token}`);
     expect(res.status).toBe(403);
     expect(res.body.module).toBe('NEXUSLEGAL');
   });

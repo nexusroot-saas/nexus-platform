@@ -96,7 +96,10 @@ export async function refresh(refreshToken) {
 
   const rt = rows[0];
 
-  await pool.query(`UPDATE refresh_tokens SET revoked_at = NOW() WHERE id = $1`, [rt.id]);
+  await pool.query(
+    `UPDATE refresh_tokens SET revoked_at = NOW() WHERE id = $1`,
+    [rt.id]
+  );
 
   const newAccessToken = generateAccessToken({
     id: rt.user_id,

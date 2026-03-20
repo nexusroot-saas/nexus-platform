@@ -4,12 +4,27 @@
  */
 
 const variantStyles = {
-  success: { bg: 'var(--color-action-success-soft)', color: 'var(--color-action-success)' },
-  danger:  { bg: 'var(--color-action-danger-soft)',  color: 'var(--color-action-danger)' },
-  warning: { bg: 'var(--color-action-warning-soft)', color: 'var(--color-action-warning)' },
-  info:    { bg: 'var(--color-action-info-soft)',    color: 'var(--color-action-info)' },
-  neutral: { bg: 'var(--color-surface-alt)',         color: 'var(--color-text-secondary)' },
-  brand:   { bg: 'var(--color-brand-soft)',          color: 'var(--color-brand-primary)' },
+  success: {
+    bg: 'var(--color-action-success-soft)',
+    color: 'var(--color-action-success)',
+  },
+  danger: {
+    bg: 'var(--color-action-danger-soft)',
+    color: 'var(--color-action-danger)',
+  },
+  warning: {
+    bg: 'var(--color-action-warning-soft)',
+    color: 'var(--color-action-warning)',
+  },
+  info: {
+    bg: 'var(--color-action-info-soft)',
+    color: 'var(--color-action-info)',
+  },
+  neutral: {
+    bg: 'var(--color-surface-alt)',
+    color: 'var(--color-text-secondary)',
+  },
+  brand: { bg: 'var(--color-brand-soft)', color: 'var(--color-brand-primary)' },
 };
 
 export function Badge({ children, variant = 'neutral', style: extra = {} }) {

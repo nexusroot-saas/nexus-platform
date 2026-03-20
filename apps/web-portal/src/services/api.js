@@ -16,10 +16,12 @@ api.interceptors.request.use((config) => {
 export const documentTemplatesApi = {
   list: () => api.get('/document-templates'),
   get: (doctype) => api.get(`/document-templates/${doctype}`),
-  save: (doctype, contentHtml) => api.post(`/document-templates/${doctype}`, { contentHtml }),
+  save: (doctype, contentHtml) =>
+    api.post(`/document-templates/${doctype}`, { contentHtml }),
   preview: (doctype, contentHtml) =>
     api.post(`/document-templates/${doctype}/preview`, { contentHtml }),
-  restore: (doctype) => api.post(`/document-templates/${doctype}/restore-default`),
+  restore: (doctype) =>
+    api.post(`/document-templates/${doctype}/restore-default`),
 };
 
 export default api;

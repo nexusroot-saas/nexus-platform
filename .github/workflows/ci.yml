@@ -9,13 +9,13 @@ jobs:
   ci:
     name: Lint, Test RLS, Apply Migrations
     runs-on: ubuntu-latest
-    
+
     # Secrets do Supabase (adicionar em GitHub Settings > Secrets)
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      SUPABASE_PROJECT_REF: jvxjjezqevbbxsqxrofu  # Seu projeto Supabase
+      SUPABASE_PROJECT_REF: jvxjjezqevbbxsqxrofu # Seu projeto Supabase
       DATABASE_URL_TEST: postgresql://nexus:nexusdevpass@localhost:5432/nexusdev
-    
+
     services:
       postgres:
         image: postgres:16-alpine

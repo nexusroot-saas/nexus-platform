@@ -34,7 +34,9 @@ router.get('/', authenticate, authorize('users', 'read'), async (req, res) => {
     }
     if (search) {
       params.push(`%${search}%`);
-      filters.push(`(u.name ILIKE $${params.length} OR u.email ILIKE $${params.length})`);
+      filters.push(
+        `(u.name ILIKE $${params.length} OR u.email ILIKE $${params.length})`
+      );
     }
 
     const where = filters.join(' AND ');
@@ -75,147 +77,187 @@ router.get('/', authenticate, authorize('users', 'read'), async (req, res) => {
  * GET /api/v1/root/users/:id
  * Detalhe de um usuário específico
  */
-router.get('/:id', authenticate, authorize('users', 'read'), async (req, res) => {
-  try {
-    const { rows } = await authPool.query(
-      `SELECT u.id, u.name, u.email, u.role, u.status,
+router.get(
+  '/:id',
+  authenticate,
+  authorize('users', 'read'),
+  async (req, res) => {
+    try {
+      const { rows } = await authPool.query(
+        `SELECT u.id, u.name, u.email, u.role, u.status,
               u.company_id, c.nome_fantasia AS company_name,
               c.tenant_type, c.active_modules,
               u.last_login_at, u.created_at, u.updated_at
        FROM users u
        JOIN companies c ON c.id = u.company_id
        WHERE u.id = $1 AND u.deleted_at IS NULL`,
-      [req.params.id]
-    );
+        [req.params.id]
+      );
 
-    if (rows.length === 0) {
-      return res.status(404).json({ error: 'Usuário não encontrado.' });
+      if (rows.length === 0) {
+        return res.status(404).json({ error: 'Usuário não encontrado.' });
+      }
+
+      return res.status(200).json({ data: rows[0] });
+    } catch (err) {
+      console.error('[root/users] GET/:id error:', err.message);
+      return res.status(500).json({ error: 'Erro ao buscar usuário.' });
     }
-
-    return res.status(200).json({ data: rows[0] });
-  } catch (err) {
-    console.error('[root/users] GET/:id error:', err.message);
-    return res.status(500).json({ error: 'Erro ao buscar usuário.' });
   }
-});
+);
 
 /**
  * PATCH /api/v1/root/users/:id/status
  * Ativa, bloqueia ou coloca usuário como pendente
  */
-router.patch('/:id/status', authenticate, authorize('users', 'update'), async (req, res) => {
-  const { status } = req.body;
-  const allowed = ['ACTIVE', 'BLOCKED', 'PENDING'];
+router.patch(
+  '/:id/status',
+  authenticate,
+  authorize('users', 'update'),
+  async (req, res) => {
+    const { status } = req.body;
+    const allowed = ['ACTIVE', 'BLOCKED', 'PENDING'];
 
-  if (!allowed.includes(status)) {
-    return res.status(400).json({ error: `Status inválido. Use: ${allowed.join(', ')}` });
-  }
-
-  try {
-    const { rows, rowCount } = await authPool.query(
-      `UPDATE users SET status = $1, updated_at = NOW()
-       WHERE id = $2 AND deleted_at IS NULL
-       RETURNING id, name, email, role, status, updated_at`,
-      [status, req.params.id]
-    );
-
-    if (rowCount === 0) {
-      return res.status(404).json({ error: 'Usuário não encontrado.' });
+    if (!allowed.includes(status)) {
+      return res
+        .status(400)
+        .json({ error: `Status inválido. Use: ${allowed.join(', ')}` });
     }
 
-    return res.status(200).json({ data: rows[0] });
-  } catch (err) {
-    console.error('[root/users] PATCH status error:', err.message);
-    return res.status(500).json({ error: 'Erro ao atualizar status.' });
+    try {
+      const { rows, rowCount } = await authPool.query(
+        `UPDATE users SET status = $1, updated_at = NOW()
+       WHERE id = $2 AND deleted_at IS NULL
+       RETURNING id, name, email, role, status, updated_at`,
+        [status, req.params.id]
+      );
+
+      if (rowCount === 0) {
+        return res.status(404).json({ error: 'Usuário não encontrado.' });
+      }
+
+      return res.status(200).json({ data: rows[0] });
+    } catch (err) {
+      console.error('[root/users] PATCH status error:', err.message);
+      return res.status(500).json({ error: 'Erro ao atualizar status.' });
+    }
   }
-});
+);
 
 /**
  * PATCH /api/v1/root/users/:id/role
  * Altera o role de um usuário
  */
-router.patch('/:id/role', authenticate, authorize('users', 'update'), async (req, res) => {
-  const { role } = req.body;
-  const allowed = ['ROOT', 'TENANT_ADMIN', 'MEDICO', 'RECEPCIONISTA', 'FINANCEIRO', 'DPO_EXTERNO'];
+router.patch(
+  '/:id/role',
+  authenticate,
+  authorize('users', 'update'),
+  async (req, res) => {
+    const { role } = req.body;
+    const allowed = [
+      'ROOT',
+      'TENANT_ADMIN',
+      'MEDICO',
+      'RECEPCIONISTA',
+      'FINANCEIRO',
+      'DPO_EXTERNO',
+    ];
 
-  if (!allowed.includes(role)) {
-    return res.status(400).json({ error: `Role inválido. Use: ${allowed.join(', ')}` });
-  }
-
-  try {
-    const { rows, rowCount } = await authPool.query(
-      `UPDATE users SET role = $1, updated_at = NOW()
-       WHERE id = $2 AND deleted_at IS NULL
-       RETURNING id, name, email, role, status, updated_at`,
-      [role, req.params.id]
-    );
-
-    if (rowCount === 0) {
-      return res.status(404).json({ error: 'Usuário não encontrado.' });
+    if (!allowed.includes(role)) {
+      return res
+        .status(400)
+        .json({ error: `Role inválido. Use: ${allowed.join(', ')}` });
     }
 
-    return res.status(200).json({ data: rows[0] });
-  } catch (err) {
-    console.error('[root/users] PATCH role error:', err.message);
-    return res.status(500).json({ error: 'Erro ao atualizar role.' });
+    try {
+      const { rows, rowCount } = await authPool.query(
+        `UPDATE users SET role = $1, updated_at = NOW()
+       WHERE id = $2 AND deleted_at IS NULL
+       RETURNING id, name, email, role, status, updated_at`,
+        [role, req.params.id]
+      );
+
+      if (rowCount === 0) {
+        return res.status(404).json({ error: 'Usuário não encontrado.' });
+      }
+
+      return res.status(200).json({ data: rows[0] });
+    } catch (err) {
+      console.error('[root/users] PATCH role error:', err.message);
+      return res.status(500).json({ error: 'Erro ao atualizar role.' });
+    }
   }
-});
+);
 
 /**
  * POST /api/v1/root/users/:id/reset-password
  * Reset de senha de emergência pelo ROOT
  */
-router.post('/:id/reset-password', authenticate, authorize('users', 'update'), async (req, res) => {
-  const { new_password } = req.body;
+router.post(
+  '/:id/reset-password',
+  authenticate,
+  authorize('users', 'update'),
+  async (req, res) => {
+    const { new_password } = req.body;
 
-  if (!new_password || new_password.length < 8) {
-    return res.status(400).json({ error: 'Senha deve ter no mínimo 8 caracteres.' });
-  }
-
-  try {
-    const hash = await bcrypt.hash(new_password, 10);
-
-    const { rowCount } = await authPool.query(
-      `UPDATE users SET password_hash = $1, updated_at = NOW()
-       WHERE id = $2 AND deleted_at IS NULL`,
-      [hash, req.params.id]
-    );
-
-    if (rowCount === 0) {
-      return res.status(404).json({ error: 'Usuário não encontrado.' });
+    if (!new_password || new_password.length < 8) {
+      return res
+        .status(400)
+        .json({ error: 'Senha deve ter no mínimo 8 caracteres.' });
     }
 
-    return res.status(200).json({ message: 'Senha redefinida com sucesso.' });
-  } catch (err) {
-    console.error('[root/users] reset-password error:', err.message);
-    return res.status(500).json({ error: 'Erro ao redefinir senha.' });
+    try {
+      const hash = await bcrypt.hash(new_password, 10);
+
+      const { rowCount } = await authPool.query(
+        `UPDATE users SET password_hash = $1, updated_at = NOW()
+       WHERE id = $2 AND deleted_at IS NULL`,
+        [hash, req.params.id]
+      );
+
+      if (rowCount === 0) {
+        return res.status(404).json({ error: 'Usuário não encontrado.' });
+      }
+
+      return res.status(200).json({ message: 'Senha redefinida com sucesso.' });
+    } catch (err) {
+      console.error('[root/users] reset-password error:', err.message);
+      return res.status(500).json({ error: 'Erro ao redefinir senha.' });
+    }
   }
-});
+);
 
 /**
  * DELETE /api/v1/root/users/:id
  * Soft delete de usuário (desligamento)
  */
-router.delete('/:id', authenticate, authorize('users', 'delete'), async (req, res) => {
-  try {
-    const { rows, rowCount } = await authPool.query(
-      `UPDATE users
+router.delete(
+  '/:id',
+  authenticate,
+  authorize('users', 'delete'),
+  async (req, res) => {
+    try {
+      const { rows, rowCount } = await authPool.query(
+        `UPDATE users
        SET status = 'BLOCKED', deleted_at = NOW(), updated_at = NOW()
        WHERE id = $1 AND deleted_at IS NULL
        RETURNING id, name, email, status`,
-      [req.params.id]
-    );
+        [req.params.id]
+      );
 
-    if (rowCount === 0) {
-      return res.status(404).json({ error: 'Usuário não encontrado.' });
+      if (rowCount === 0) {
+        return res.status(404).json({ error: 'Usuário não encontrado.' });
+      }
+
+      return res
+        .status(200)
+        .json({ data: rows[0], message: 'Usuário removido com sucesso.' });
+    } catch (err) {
+      console.error('[root/users] DELETE error:', err.message);
+      return res.status(500).json({ error: 'Erro ao remover usuário.' });
     }
-
-    return res.status(200).json({ data: rows[0], message: 'Usuário removido com sucesso.' });
-  } catch (err) {
-    console.error('[root/users] DELETE error:', err.message);
-    return res.status(500).json({ error: 'Erro ao remover usuário.' });
   }
-});
+);
 
 export default router;
 
@@ -224,38 +266,63 @@ export default router;
  * Cria usuário em qualquer tenant (usado para criar o TENANT_ADMIN inicial)
  * Role: ROOT apenas
  */
-router.post('/', authenticate, authorize('users', 'create'), async (req, res) => {
-  const { company_id, name, email, password, role = 'TENANT_ADMIN' } = req.body;
+router.post(
+  '/',
+  authenticate,
+  authorize('users', 'create'),
+  async (req, res) => {
+    const {
+      company_id,
+      name,
+      email,
+      password,
+      role = 'TENANT_ADMIN',
+    } = req.body;
 
-  if (!company_id || !name || !email || !password) {
-    return res.status(400).json({ error: 'company_id, name, email e password são obrigatórios.' });
-  }
+    if (!company_id || !name || !email || !password) {
+      return res.status(400).json({
+        error: 'company_id, name, email e password são obrigatórios.',
+      });
+    }
 
-  if (password.length < 8) {
-    return res.status(400).json({ error: 'Senha deve ter no mínimo 8 caracteres.' });
-  }
+    if (password.length < 8) {
+      return res
+        .status(400)
+        .json({ error: 'Senha deve ter no mínimo 8 caracteres.' });
+    }
 
-  const allowed = ['TENANT_ADMIN', 'MEDICO', 'RECEPCIONISTA', 'FINANCEIRO', 'DPO_EXTERNO'];
-  if (!allowed.includes(role)) {
-    return res.status(400).json({ error: `Role inválido. Use: ${allowed.join(', ')}` });
-  }
+    const allowed = [
+      'TENANT_ADMIN',
+      'MEDICO',
+      'RECEPCIONISTA',
+      'FINANCEIRO',
+      'DPO_EXTERNO',
+    ];
+    if (!allowed.includes(role)) {
+      return res
+        .status(400)
+        .json({ error: `Role inválido. Use: ${allowed.join(', ')}` });
+    }
 
-  try {
-    const hash = await bcrypt.hash(password, 10);
+    try {
+      const hash = await bcrypt.hash(password, 10);
 
-    const { rows } = await authPool.query(
-      `INSERT INTO users (id, company_id, name, email, password_hash, role, status)
+      const { rows } = await authPool.query(
+        `INSERT INTO users (id, company_id, name, email, password_hash, role, status)
        VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, 'ACTIVE')
        RETURNING id, name, email, role, status, company_id, created_at`,
-      [company_id, name, email, hash, role]
-    );
+        [company_id, name, email, hash, role]
+      );
 
-    return res.status(201).json({ data: rows[0] });
-  } catch (err) {
-    if (err.code === '23505') {
-      return res.status(409).json({ error: 'E-mail já cadastrado neste tenant.' });
+      return res.status(201).json({ data: rows[0] });
+    } catch (err) {
+      if (err.code === '23505') {
+        return res
+          .status(409)
+          .json({ error: 'E-mail já cadastrado neste tenant.' });
+      }
+      console.error('[root/users] POST error:', err.message);
+      return res.status(500).json({ error: 'Erro ao criar usuário.' });
     }
-    console.error('[root/users] POST error:', err.message);
-    return res.status(500).json({ error: 'Erro ao criar usuário.' });
   }
-});
+);

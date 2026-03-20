@@ -64,7 +64,13 @@ export async function enqueueWebhook({
       `INSERT INTO public.webhook_queue (message_id, event_type, provider, payload, company_id)
        VALUES ($1, $2, $3, $4::jsonb, $5)
        ON CONFLICT (message_id) DO NOTHING`,
-      [message_id, event_type, provider, JSON.stringify(payload), company_id || null]
+      [
+        message_id,
+        event_type,
+        provider,
+        JSON.stringify(payload),
+        company_id || null,
+      ]
     );
 
     console.log(`[QUEUE] Enfileirado: ${message_id} (${event_type})`);
@@ -124,7 +130,9 @@ async function processJob(job) {
       `[QUEUE] ✓ Processado: ${job.message_id} (${job.event_type}) — tentativa ${attempts}`
     );
   } catch (err) {
-    console.error(`[QUEUE] ✗ Falha: ${job.message_id} — tentativa ${attempts} — ${err.message}`);
+    console.error(
+      `[QUEUE] ✗ Falha: ${job.message_id} — tentativa ${attempts} — ${err.message}`
+    );
 
     if (attempts >= MAX_ATTEMPTS) {
       // Dead Letter Queue
@@ -134,10 +142,13 @@ async function processJob(job) {
          WHERE id = $3`,
         [attempts, err.message, job.id]
       );
-      console.error(`[QUEUE] ⛔ DLQ: ${job.message_id} excedeu ${MAX_ATTEMPTS} tentativas`);
+      console.error(
+        `[QUEUE] ⛔ DLQ: ${job.message_id} excedeu ${MAX_ATTEMPTS} tentativas`
+      );
     } else {
       // Reagendar com backoff
-      const delayMs = BACKOFF_MS[attempts - 1] || BACKOFF_MS[BACKOFF_MS.length - 1];
+      const delayMs =
+        BACKOFF_MS[attempts - 1] || BACKOFF_MS[BACKOFF_MS.length - 1];
       const nextAt = new Date(Date.now() + delayMs);
 
       await pool.query(
@@ -146,7 +157,9 @@ async function processJob(job) {
          WHERE id = $4`,
         [attempts, nextAt.toISOString(), err.message, job.id]
       );
-      console.log(`[QUEUE] ↻ Reagendado: ${job.message_id} para ${nextAt.toLocaleString('pt-BR')}`);
+      console.log(
+        `[QUEUE] ↻ Reagendado: ${job.message_id} para ${nextAt.toLocaleString('pt-BR')}`
+      );
     }
   }
 }
@@ -174,7 +187,12 @@ async function handleConsentSigned(payload, company_id) {
     `UPDATE public.consents
      SET status = 'ASSINADO', signed_at = $1, ip_address = $2, updated_at = NOW()
      WHERE id = $3 AND company_id = $4`,
-    [signed_at || new Date().toISOString(), ip_address || null, consent_id, company_id]
+    [
+      signed_at || new Date().toISOString(),
+      ip_address || null,
+      consent_id,
+      company_id,
+    ]
   );
 
   // Registrar na auditoria
@@ -198,7 +216,9 @@ async function handleAppointmentConfirmed(payload, company_id) {
     [appointment_id, company_id]
   );
 
-  console.log(`[QUEUE] P1 appointment.confirmed processado: appt=${appointment_id}`);
+  console.log(
+    `[QUEUE] P1 appointment.confirmed processado: appt=${appointment_id}`
+  );
 }
 
 // P2 — Mensagem genérica recebida (SLA < 1 hora)

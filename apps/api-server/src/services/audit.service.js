@@ -48,7 +48,9 @@ export async function log({
         user_agent,
       ]
     )
-    .catch((err) => console.error('[audit_log] Falha ao gravar log:', err.message));
+    .catch((err) =>
+      console.error('[audit_log] Falha ao gravar log:', err.message)
+    );
 }
 
 /**

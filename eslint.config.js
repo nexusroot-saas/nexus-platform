@@ -4,95 +4,53 @@ import prettierPlugin from 'eslint-plugin-prettier';
 import globals from 'globals';
 
 export default [
-  // Configurações recomendadas
   js.configs.recommended,
-  prettierConfig, // Desabilita regras conflitantes com Prettier
+  prettierConfig,
 
-  // ── Configuração base monorepo ──────────────────────────────
   {
-    plugins: {
-      prettier: prettierPlugin,
-    },
+    plugins: { prettier: prettierPlugin },
     rules: {
       'prettier/prettier': 'error',
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       'no-console': 'off',
     },
     languageOptions: {
-      ecmaVersion: 'latest', // 2024+
+      ecmaVersion: 'latest',
       sourceType: 'module',
-      ecmaFeatures: { jsx: true }, // ✅ FIX: Suporte JSX
+      parserOptions: {
+        ecmaFeatures: { jsx: true },
+      },
       globals: {
-        process: 'readonly',
-        console: 'readonly',
-        Buffer: 'readonly',
-        fetch: 'readonly',
-        setImmediate: 'readonly',
-        setTimeout: 'readonly',
-        clearTimeout: 'readonly',
-        setInterval: 'readonly',
-        clearInterval: 'readonly',
-        // ✅ FIX: Erros no-undef
+        ...globals.node,
+        ...globals.browser,
         atob: 'readonly',
         URLSearchParams: 'readonly',
-        ...globals.node, // Node.js completo
       },
     },
   },
 
-  // ── Arquivos .cjs (CommonJS) ───────────────────────────────
   {
     files: ['**/*.cjs'],
     languageOptions: {
       sourceType: 'commonjs',
-      globals: {
-        module: 'writable',
-        require: 'readonly',
-        __dirname: 'readonly',
-        __filename: 'readonly',
-      },
+      globals: globals.commonjs,
     },
   },
 
-  // ── Frontend React/JSX (apps web-portal & nexus-root) ──────
   {
-    files: [
-      'apps/web-portal/**/*.{js,jsx,ts,tsx}',
-      'apps/nexus-root/**/*.{js,jsx,ts,tsx}',
-    ],
+    files: ['apps/web-portal/**/*.{js,jsx}', 'apps/nexus-root/**/*.{js,jsx}'],
     languageOptions: {
-      globals: {
-        ...globals.browser,
-        window: 'readonly',
-        document: 'readonly',
-        localStorage: 'readonly',
-        sessionStorage: 'readonly',
-        alert: 'readonly',
-        confirm: 'readonly',
-        navigator: 'readonly',
-      },
+      globals: globals.browser,
     },
   },
 
-  // ── Testes Jest ────────────────────────────────────────────
   {
-    files: ['**/__tests__/**/*.{js,jsx}', '**/*.{test,spec}.{js,jsx}'],
+    files: ['**/*.{test,spec}.{js,jsx}', '**/__tests__/**/*.{js,jsx}'],
     languageOptions: {
-      globals: {
-        describe: 'readonly',
-        test: 'readonly',
-        it: 'readonly',
-        expect: 'readonly',
-        beforeAll: 'readonly',
-        afterAll: 'readonly',
-        beforeEach: 'readonly',
-        afterEach: 'readonly',
-        jest: 'readonly',
-      },
+      globals: globals.jest,
     },
   },
 
-  // ── Ignores ────────────────────────────────────────────────
   {
     ignores: [
       'node_modules/**',

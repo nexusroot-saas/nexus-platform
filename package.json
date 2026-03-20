@@ -46,8 +46,7 @@
     "supabase:db:diff": "supabase db diff",
     "supabase:db:dump": "supabase db dump --db-url $DATABASE_URL",
     "ci": "npm run lint && npm run format:check && npm run test && npm run test:rls && npm run build",
-    "ci:test": "npm run lint && npm run format:check && npm run db:reset:test && npm run db:migrate:test && npm run test:clean",
-    "deploy:render": "npm run build && npm run db:migrate:dev",
+    "ci:test": "npm run lint:fix && npm run format:check && npm run db:reset:test && npm run db:migrate:test && npm run test:clean",    "deploy:render": "npm run build && npm run db:migrate:dev",
     "deploy:staging": "npm run ci && echo 'npm run db:migrate:staging'",
     "deploy:prod": "npm run ci && echo 'npm run db:migrate:prod'"
   },

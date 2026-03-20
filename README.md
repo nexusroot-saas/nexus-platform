@@ -31,6 +31,7 @@ Nota
 Para versões do Bun abaixo de v1.0.17, adicione supabase como trusted dependency antes de rodar bun add -D supabase.
 
 Plataformas
+
 <details>
 <summary><b>macOS</b></summary>
 
@@ -47,6 +48,7 @@ Upgrade:
 
 sh
 brew upgrade supabase
+
 </details>
 
 <details>
@@ -61,6 +63,7 @@ Upgrade:
 
 powershell
 scoop update supabase
+
 </details>
 
 <details>
@@ -78,6 +81,7 @@ sudo apk add --allow-untrusted <...>.apk
 sudo dpkg -i <...>.deb
 sudo rpm -i <...>.rpm
 sudo pacman -U <...>.pkg.tar.zst
+
 </details>
 
 <details>
@@ -88,6 +92,7 @@ Via Go modules:
 sh
 go install github.com/supabase/cli@latest
 ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
+
 </details>
 
 <details>
@@ -120,18 +125,19 @@ Se precisar de estabilidade, fixe uma versão específica no package.json.
 Rodar a partir do código-fonte:
 
 sh
-# Go >= 1.22
-go run . help
 
+# Go >= 1.22
+
+go run . help
 
 📘 CI/CD Pipeline - Nexus Platform
 Este documento descreve o fluxo de integração e entrega contínua (CI/CD) do projeto Nexus Platform, com ambientes separados para Staging e Produção.
 
 🔁 Fluxo de Branches
-Branch	Ambiente	Ação automática
-develop	Staging	Deploy automático
-main	Produção	Deploy automático
-qualquer PR	CI geral	Lint, testes, build
+Branch Ambiente Ação automática
+develop Staging Deploy automático
+main Produção Deploy automático
+qualquer PR CI geral Lint, testes, build
 
 ⚙️ Workflows GitHub Actions
 ci.yml → roda em qualquer push ou PR.
@@ -184,24 +190,24 @@ Mantenha .env.test com PGHOST=127.0.0.1 para evitar erros de conexão.
 
 📊 Fluxo Visual (ASCII)
 Código
-           [ Pull Request / Push ]
-                     |
-                     v
-               +------------+
-               |   CI.yml   |
-               | Lint/Test  |
-               +------------+
-                     |
-        +------------+-------------+
-        |                          |
-        v                          v
- [ develop branch ]          [ main branch ]
-        |                          |
-        v                          v
-+------------------+        +------------------+
-| staging.yml      |        | prod.yml         |
-| Deploy Staging   |        | Deploy Produção  |
-+------------------+        +------------------+
-        |                          |
-   Supabase + Render          Supabase + Render
-     Staging Env                Prod Env
+[ Pull Request / Push ]
+|
+v
++------------+
+| CI.yml |
+| Lint/Test |
++------------+
+|
++------------+-------------+
+| |
+v v
+[ develop branch ] [ main branch ]
+| |
+v v
++------------------+ +------------------+
+| staging.yml | | prod.yml |
+| Deploy Staging | | Deploy Produção |
++------------------+ +------------------+
+| |
+Supabase + Render Supabase + Render
+Staging Env Prod Env

@@ -9,8 +9,8 @@
  * @param {string} tenantId - UUID do tenant (companyid)
  */
 export async function setTenantContext(client, tenantId) {
-  await client.query(
-    'SELECT set_config($1, $2, false)',
-    ['app.currentcompanyid', tenantId]
-  );
+  await client.query('SELECT set_config($1, $2, false)', [
+    'app.currentcompanyid',
+    tenantId,
+  ]);
 }

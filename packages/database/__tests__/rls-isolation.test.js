@@ -13,7 +13,9 @@ beforeAll(async () => {
   await clientB.connect();
 
   // Limpa dados duplicados
-  await clientA.query('TRUNCATE TABLE patients, companies RESTART IDENTITY CASCADE;');
+  await clientA.query(
+    'TRUNCATE TABLE patients, companies RESTART IDENTITY CASCADE;'
+  );
 
   // Cria tenants
   await clientA.query(
@@ -50,11 +52,17 @@ afterAll(async () => {
 });
 
 test('Tenant A deve ver 2 pacientes no seu tenant', async () => {
-  const result = await clientA.query('SELECT id FROM patients WHERE companyid = $1;', [TENANT_A]);
+  const result = await clientA.query(
+    'SELECT id FROM patients WHERE companyid = $1;',
+    [TENANT_A]
+  );
   expect(result.rowCount).toBe(2);
 });
 
 test('Tenant B deve ver 2 pacientes no seu tenant', async () => {
-  const result = await clientB.query('SELECT id FROM patients WHERE companyid = $1;', [TENANT_B]);
+  const result = await clientB.query(
+    'SELECT id FROM patients WHERE companyid = $1;',
+    [TENANT_B]
+  );
   expect(result.rowCount).toBe(2);
 });

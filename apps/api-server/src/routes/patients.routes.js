@@ -12,14 +12,16 @@ router.use(async (req, res, next) => {
     return res.status(401).json({ error: 'Token não fornecido' });
   }
 
-  const token = auth.startsWith('Bearer ') ? auth.substring(7).trim() : auth.trim();
+  const token = auth.startsWith('Bearer ')
+    ? auth.substring(7).trim()
+    : auth.trim();
 
   try {
     // Valida JWT
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'test-secret');
-    req.user = { 
+    req.user = {
       companyid: decoded.companyid || '00000000-0000-0000-0000-000000000001',
-      role: decoded.role
+      role: decoded.role,
     };
   } catch (err) {
     if (err.name === 'TokenExpiredError') {

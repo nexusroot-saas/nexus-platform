@@ -11,15 +11,21 @@ export default [
     plugins: { prettier: prettierPlugin },
     rules: {
       'prettier/prettier': 'error',
-      'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      // ✅ FIX: Ignora React components + imports
+      'no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^React$|^Routes$|^Route$|^Navigate$',
+          caughtErrors: 'all',
+        },
+      ],
       'no-console': 'off',
     },
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
-      parserOptions: {
-        ecmaFeatures: { jsx: true },
-      },
+      parserOptions: { ecmaFeatures: { jsx: true } },
       globals: {
         ...globals.node,
         ...globals.browser,
@@ -39,16 +45,12 @@ export default [
 
   {
     files: ['apps/web-portal/**/*.{js,jsx}', 'apps/nexus-root/**/*.{js,jsx}'],
-    languageOptions: {
-      globals: globals.browser,
-    },
+    languageOptions: { globals: globals.browser },
   },
 
   {
     files: ['**/*.{test,spec}.{js,jsx}', '**/__tests__/**/*.{js,jsx}'],
-    languageOptions: {
-      globals: globals.jest,
-    },
+    languageOptions: { globals: globals.jest },
   },
 
   {

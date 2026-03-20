@@ -79,7 +79,7 @@ jobs:
       - name: Apply migrations to Supabase (main branch only)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          supabase link --project-ref ${{ env.SUPABASE_PROJECT_REF }} --access-token ${{ env.SUPABASE_ACCESS_TOKEN }}
+          supabase link --project-ref ${{ env.SUPABASE_PROJECT_REF }}
           supabase db push
 
       - name: Build

@@ -1,20 +1,9 @@
-import express from 'express';
-import cors from 'cors';
-import patientsRoutes from './routes/patients.routes.js';
+import app from './app.js';
 
-const app = express();
-app.use(cors());
-app.use(express.static('public'));
+const PORT = 3001;
 
-app.get('/', (req, res) => {
-  res.send('Servidor Nexus Platform está rodando!');
-});
-
-app.get('/health', (req, res) => res.json({ status: 'OK', timestamp: new Date().toISOString() }));
-app.use('/api', patientsRoutes);
-
-app.listen(3001, () => {
-  console.log('🚀 Nexus API Server: http://localhost:3001');
-  console.log('📊 Health: http://localhost:3001/health');
-  console.log('👥 Patients: http://localhost:3001/api/v1/patients');
+app.listen(PORT, () => {
+  console.log(`🚀 Nexus API Server: http://localhost:${PORT}`);
+  console.log(`📊 Health: http://localhost:${PORT}/health`);
+  console.log(`👥 Patients: http://localhost:${PORT}/api/v1/patients`);
 });

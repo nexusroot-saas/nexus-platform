@@ -3,7 +3,7 @@
  *
  * Legenda: R=read C=create U=update D=delete
  */
-const PERMISSIONS = {
+export const PERMISSIONS = {
   // ... outros recursos existentes
   documenttemplates: {
     read: ['TENANTADMIN', 'MEDICO', 'RECEPCIONISTA'],
@@ -76,4 +76,3 @@ export function authorize(resource, action) {
     return next();
   };
 }
-export const PERMISSIONS = { patients: ['read'] };

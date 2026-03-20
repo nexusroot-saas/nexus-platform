@@ -1,26 +1,32 @@
+version: '3.8'
 services:
-  postgres:
+  db:
     image: postgres:16-alpine
-    container_name: nexus-platform-postgres-1
+    container_name: nexus-db
     environment:
       POSTGRES_USER: nexus
       POSTGRES_PASSWORD: nexusdevpass
-      POSTGRES_DB: nexus_dev
+      POSTGRES_DB: nexusdev
     ports:
-      - '5432:5432'
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U nexus -d nexus_dev']
+      test: ["CMD-SHELL", "pg_isready -U nexus"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
-    container_name: nexus-platform-redis-1
+    container_name: nexus-redis
     ports:
-      - '6379:6379'
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:

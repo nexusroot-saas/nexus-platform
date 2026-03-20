@@ -76,3 +76,4 @@ export function authorize(resource, action) {
     return next();
   };
 }
+export const PERMISSIONS = { patients: ['read'] };
